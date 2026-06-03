@@ -138,24 +138,25 @@ prisma/
 
 ### Entregas
 
-- [ ] Instalar dependências: `@trpc/server`, `@trpc/client`, `@trpc/react-query`, `@tanstack/react-query`, `zod`, `superjson`
-- [ ] Instalar Prisma + Supabase: `prisma`, `@prisma/client`, `@supabase/supabase-js`, `@supabase/ssr`
-- [ ] Instalar utilitários: `stripe`, `resend`, `@dnd-kit/core`, `@dnd-kit/sortable`, `recharts`, `lucide-react`
-- [ ] Inicializar shadcn/ui (`npx shadcn@latest init`) com tema slate
-- [ ] Instalar componentes shadcn base: `button`, `input`, `label`, `card`, `badge`, `avatar`, `dropdown-menu`, `dialog`, `form`, `sheet`, `separator`, `skeleton`, `toast`, `tooltip`
-- [ ] Escrever `prisma/schema.prisma` com todos os models: `User`, `Workspace`, `WorkspaceMember`, `Lead`, `Deal`, `Activity` + enums
-- [ ] Criar `src/lib/supabase/client.ts` (browser client)
-- [ ] Criar `src/lib/supabase/server.ts` (server client com cookies)
-- [ ] Criar `src/server/trpc.ts` (init tRPC + context com auth Supabase)
-- [ ] Criar `src/server/db.ts` (Prisma client singleton)
-- [ ] Criar `src/server/routers/_app.ts` (router raiz vazio)
-- [ ] Criar `src/app/api/trpc/[trpc]/route.ts` (handler HTTP do tRPC)
-- [ ] Criar `src/lib/trpc/client.ts` (tRPC client para Client Components)
-- [ ] Criar `src/lib/trpc/server.ts` (tRPC caller para Server Components)
-- [ ] Criar `src/app/providers.tsx` (QueryClientProvider + tRPC provider)
-- [ ] Criar `.env.example` com todas as variáveis necessárias
-- [ ] Criar `.env.local` vazio com as chaves a preencher
-- [ ] Inicializar git e fazer primeiro commit
+- [x] Instalar dependências: `@trpc/server`, `@trpc/client`, `@trpc/react-query`, `@tanstack/react-query`, `zod`, `superjson`
+- [x] Instalar Prisma + Supabase: `prisma`, `@prisma/client`, `@supabase/supabase-js`, `@supabase/ssr`
+- [x] Instalar utilitários: `stripe`, `resend`, `@dnd-kit/core`, `@dnd-kit/sortable`, `recharts`, `lucide-react`
+- [x] Inicializar shadcn/ui (`npx shadcn@latest init`) com tema slate
+- [x] Instalar componentes shadcn base: `button`, `input`, `label`, `card`, `badge`, `avatar`, `dropdown-menu`, `dialog`, `form`, `sheet`, `separator`, `skeleton`, `toast`, `tooltip`
+- [x] Escrever `prisma/schema.prisma` com todos os models: `User`, `Workspace`, `WorkspaceMember`, `Lead`, `Deal`, `Activity` + enums
+- [x] Criar `src/lib/supabase/client.ts` (browser client)
+- [x] Criar `src/lib/supabase/server.ts` (server client com cookies)
+- [x] Criar `src/server/trpc.ts` (init tRPC + context com auth Supabase)
+- [x] Criar `src/server/db.ts` (Prisma client singleton)
+- [x] Criar `src/server/routers/_app.ts` (router raiz vazio)
+- [x] Criar `src/app/api/trpc/[trpc]/route.ts` (handler HTTP do tRPC)
+- [x] Criar `src/lib/trpc/client.ts` (tRPC client para Client Components)
+- [x] Criar `src/lib/trpc/server.ts` (tRPC caller para Server Components)
+- [x] Criar `src/app/providers.tsx` (QueryClientProvider + tRPC provider)
+- [x] Criar `.env.example` com todas as variáveis necessárias
+- [x] Criar `.env.local` vazio com as chaves a preencher
+- [x] Inicializar git e fazer primeiro commit
+- [x] Criar repositório no GitHub e fazer push (`main`)
 
 **Commit final:** `feat: project foundation — Next.js 14 + tRPC + Prisma + Supabase + shadcn/ui`
 
