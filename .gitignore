@@ -37,3 +37,17 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# IDE / editor
+.vscode/
+.idea/
+
+# Claude Code (memória, configs locais, transcrições)
+.claude/
+
+# MCP config local (pode conter tokens)
+.mcp.json
+
+# Prisma local dev database
+prisma/*.db
+prisma/*.db-journal
