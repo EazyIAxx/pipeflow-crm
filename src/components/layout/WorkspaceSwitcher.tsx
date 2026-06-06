@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,20 +11,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const MOCK_WORKSPACES = [
-  { id: "1", name: "Acme Corp", slug: "acme-corp" },
-  { id: "2", name: "Startup XYZ", slug: "startup-xyz" },
-];
+function formatWorkspaceName(slug: string): string {
+  return slug
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
 
 interface WorkspaceSwitcherProps {
   workspaceSlug: string;
 }
 
 export function WorkspaceSwitcher({ workspaceSlug }: WorkspaceSwitcherProps) {
-  const router = useRouter();
-  const current =
-    MOCK_WORKSPACES.find((w) => w.slug === workspaceSlug) ??
-    MOCK_WORKSPACES[0];
+  const name = formatWorkspaceName(workspaceSlug);
 
   return (
     <DropdownMenu>
@@ -36,9 +34,9 @@ export function WorkspaceSwitcher({ workspaceSlug }: WorkspaceSwitcherProps) {
         >
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground text-xs font-bold">
-              {current.name[0]}
+              {name[0]}
             </div>
-            <span className="truncate text-sm font-medium">{current.name}</span>
+            <span className="truncate text-sm font-medium">{name}</span>
           </div>
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-40" />
         </Button>
@@ -47,25 +45,13 @@ export function WorkspaceSwitcher({ workspaceSlug }: WorkspaceSwitcherProps) {
         <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
           Workspaces
         </DropdownMenuLabel>
-        {MOCK_WORKSPACES.map((ws) => (
-          <DropdownMenuItem
-            key={ws.id}
-            className="gap-2 cursor-pointer"
-            onSelect={() => {
-              if (ws.slug !== current.slug) {
-                router.push(`/${ws.slug}/dashboard`);
-              }
-            }}
-          >
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary text-xs font-bold">
-              {ws.name[0]}
-            </div>
-            <span className="flex-1 truncate text-sm">{ws.name}</span>
-            {ws.slug === current.slug && (
-              <Check className="h-3.5 w-3.5 text-primary" />
-            )}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuItem className="gap-2 cursor-default">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary text-xs font-bold">
+            {name[0]}
+          </div>
+          <span className="flex-1 truncate text-sm">{name}</span>
+          <Check className="h-3.5 w-3.5 text-primary" />
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="gap-2 cursor-pointer text-muted-foreground">
           <Plus className="h-4 w-4" />

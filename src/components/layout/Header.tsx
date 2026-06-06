@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Menu, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -10,7 +11,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SidebarContent } from "./Sidebar";
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -27,11 +27,16 @@ interface HeaderProps {
 export function Header({ workspaceSlug }: HeaderProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  // Fecha o Sheet ao navegar para outra página
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const segments = pathname.split("/").filter(Boolean);
   const lastSegment = segments[segments.length - 1] ?? "";
@@ -65,14 +70,22 @@ export function Header({ workspaceSlug }: HeaderProps) {
         <h1 className="text-sm font-semibold text-foreground">{pageLabel}</h1>
       </div>
 
-      {/* Avatar compacto — mobile only */}
-      <div className="md:hidden">
-        <Avatar className="h-8 w-8">
-          <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
-            GS
-          </AvatarFallback>
-        </Avatar>
-      </div>
+      {/* Dark mode toggle */}
+      {mounted && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          {theme === "dark" ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
+          <span className="sr-only">Alternar tema</span>
+        </Button>
+      )}
     </header>
   );
 }
