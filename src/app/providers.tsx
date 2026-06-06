@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 import { trpc } from "@/lib/trpc/client";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return "";
@@ -38,7 +39,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+      </QueryClientProvider>
     </trpc.Provider>
   );
 }

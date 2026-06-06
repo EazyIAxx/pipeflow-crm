@@ -223,15 +223,15 @@ prisma/
 
 ### Entregas — Interface
 
-- [ ] `src/app/(app)/[workspaceSlug]/layout.tsx` — layout raiz do app
-- [ ] `src/components/layout/Sidebar.tsx` — sidebar com logo, links de navegação e avatar do usuário
-- [ ] Links da sidebar: Dashboard, Leads, Pipeline, Configurações
-- [ ] `src/components/layout/WorkspaceSwitcher.tsx` — dropdown para alternar entre workspaces
-- [ ] `src/components/layout/Header.tsx` — breadcrumb + botão de ações + menu do usuário
-- [ ] `src/components/layout/UserMenu.tsx` — dropdown com "Perfil" e "Sair"
-- [ ] Página placeholder para cada rota: dashboard, leads, pipeline, settings
-- [ ] Estado ativo no link da sidebar baseado na rota atual
-- [ ] Layout responsivo: sidebar colapsável em mobile (Sheet do shadcn)
+- [x] `src/app/(app)/[workspaceSlug]/layout.tsx` — layout raiz do app
+- [x] `src/components/layout/Sidebar.tsx` — sidebar com logo, links de navegação e avatar do usuário
+- [x] Links da sidebar: Dashboard, Leads, Pipeline, Configurações
+- [x] `src/components/layout/WorkspaceSwitcher.tsx` — dropdown para alternar entre workspaces
+- [x] `src/components/layout/Header.tsx` — breadcrumb + botão de ações + menu do usuário
+- [x] `src/components/layout/UserMenu.tsx` — dropdown com "Perfil" e "Sair"
+- [x] Página placeholder para cada rota: dashboard, leads, pipeline, settings
+- [x] Estado ativo no link da sidebar baseado na rota atual
+- [x] Layout responsivo: sidebar colapsável em mobile (Sheet do shadcn)
 
 ### Entregas — Backend
 
