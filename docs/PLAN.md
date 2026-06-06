@@ -187,38 +187,38 @@ prisma/
 
 ---
 
-## M2 — Auth & Onboarding
+## M2 — Auth & Onboarding ✅
 
-**Branch:** `feat/auth`
+**Branch:** `feat/auth` → merged em `main`
 **Objetivo:** Fluxo completo de autenticação (login, signup, recuperação de senha) e onboarding para criação do primeiro workspace.
 
-### Entregas — Interface (mocked primeiro)
+### Entregas — Interface
 
-- [ ] `src/app/(auth)/login/page.tsx` — formulário e-mail + senha + link "Criar conta"
-- [ ] `src/app/(auth)/signup/page.tsx` — formulário nome + e-mail + senha
-- [ ] `src/app/(auth)/forgot-password/page.tsx` — formulário de recuperação
-- [ ] `src/app/(auth)/layout.tsx` — layout centralizado com logo
-- [ ] `src/app/(app)/onboarding/page.tsx` — formulário "Criar seu workspace" (nome da empresa + slug)
-- [ ] Validação de formulários com `react-hook-form` + `zod`
-- [ ] Loading states nos botões de submit
-- [ ] Tratamento de erros inline (campo inválido, e-mail já cadastrado)
+- [x] `src/app/(auth)/login/page.tsx` — formulário e-mail + senha + link "Criar conta"
+- [x] `src/app/(auth)/signup/page.tsx` — formulário nome + e-mail + senha
+- [x] `src/app/(auth)/forgot-password/page.tsx` — formulário de recuperação
+- [x] `src/app/(auth)/layout.tsx` — layout centralizado com logo
+- [x] `src/app/(app)/onboarding/page.tsx` — formulário "Criar seu workspace" (nome da empresa + slug auto-gerado)
+- [x] Validação de formulários com `react-hook-form` + `zod`
+- [x] Loading states nos botões de submit
+- [x] Tratamento de erros inline (campo inválido, e-mail já cadastrado, slug em uso)
 
 ### Entregas — Backend
 
-- [ ] Integração Supabase Auth: `signInWithPassword`, `signUp`, `resetPasswordForEmail`
-- [ ] Middleware `src/middleware.ts` protegendo rotas `/(app)/*`
-- [ ] Server Action ou tRPC mutation `workspace.create` com slug único
-- [ ] Upsert do `User` no banco após login (sync com Supabase Auth)
-- [ ] Redirect pós-login: se tem workspace → `/:slug/dashboard`, senão → `/onboarding`
-- [ ] Redirect pós-signup → `/onboarding`
+- [x] Integração Supabase Auth: `signInWithPassword`, `signUp`, `resetPasswordForEmail`
+- [x] Middleware `src/middleware.ts` protegendo rotas `/(app)/*`
+- [x] Server Action `createWorkspace` (`src/app/(app)/onboarding/actions.ts`) com verificação de slug único
+- [x] Upsert do `User` no banco após criação de workspace (sync com Supabase Auth)
+- [x] Redirect pós-signup → `/onboarding`
+- [ ] Redirect pós-login: se tem workspace → `/:slug/dashboard`, senão → `/onboarding` *(implementar quando `workspace.list` estiver pronto em M3 backend)*
 
-**Commit final:** `feat: auth flow — login, signup, onboarding + workspace creation`
+**Commit final:** `feat: M2 auth & onboarding — Supabase auth, workspace creation, dark mode + M3 polish`
 
 ---
 
-## M3 — App Shell
+## M3 — App Shell ✅ (interface) / 🔄 (backend pendente)
 
-**Branch:** `feat/app-shell`
+**Branch:** `feat/app-shell` → merged em `main`
 **Objetivo:** Layout base do app autenticado — sidebar, header, workspace switcher, navegação. Todas as páginas internas ficarão dentro deste shell.
 
 ### Entregas — Interface
@@ -226,12 +226,14 @@ prisma/
 - [x] `src/app/(app)/[workspaceSlug]/layout.tsx` — layout raiz do app
 - [x] `src/components/layout/Sidebar.tsx` — sidebar com logo, links de navegação e avatar do usuário
 - [x] Links da sidebar: Dashboard, Leads, Pipeline, Configurações
-- [x] `src/components/layout/WorkspaceSwitcher.tsx` — dropdown para alternar entre workspaces
-- [x] `src/components/layout/Header.tsx` — breadcrumb + botão de ações + menu do usuário
-- [x] `src/components/layout/UserMenu.tsx` — dropdown com "Perfil" e "Sair"
+- [x] `src/components/layout/WorkspaceSwitcher.tsx` — exibe workspace real (sem mocks)
+- [x] `src/components/layout/Header.tsx` — breadcrumb + toggle dark/light mode
+- [x] `src/components/layout/UserMenu.tsx` — dados reais do Supabase Auth + "Configurações" navegável + "Sair" funcional
 - [x] Página placeholder para cada rota: dashboard, leads, pipeline, settings
 - [x] Estado ativo no link da sidebar baseado na rota atual
 - [x] Layout responsivo: sidebar colapsável em mobile (Sheet do shadcn)
+- [x] Dark mode com `next-themes` (toggle Sol/Lua no header, respeita preferência do SO)
+- [x] `prisma/schema.prisma` com `previewFeatures = ["driverAdapters"]` para `@prisma/adapter-pg`
 
 ### Entregas — Backend
 

@@ -101,7 +101,7 @@ export function SidebarContent({ workspaceSlug }: SidebarContentProps) {
 
       {/* User */}
       <div className="px-3 py-3">
-        <UserMenu />
+        <UserMenu workspaceSlug={workspaceSlug} />
       </div>
     </div>
   );
