@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +22,7 @@ interface WorkspaceSwitcherProps {
 }
 
 export function WorkspaceSwitcher({ workspaceSlug }: WorkspaceSwitcherProps) {
+  const router = useRouter();
   const current =
     MOCK_WORKSPACES.find((w) => w.slug === workspaceSlug) ??
     MOCK_WORKSPACES[0];
@@ -46,7 +48,15 @@ export function WorkspaceSwitcher({ workspaceSlug }: WorkspaceSwitcherProps) {
           Workspaces
         </DropdownMenuLabel>
         {MOCK_WORKSPACES.map((ws) => (
-          <DropdownMenuItem key={ws.id} className="gap-2 cursor-pointer">
+          <DropdownMenuItem
+            key={ws.id}
+            className="gap-2 cursor-pointer"
+            onSelect={() => {
+              if (ws.slug !== current.slug) {
+                router.push(`/${ws.slug}/dashboard`);
+              }
+            }}
+          >
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary text-xs font-bold">
               {ws.name[0]}
             </div>
