@@ -162,22 +162,22 @@ prisma/
 
 ---
 
-## M1 — Landing Page
+## M1 — Landing Page ✅
 
 **Branch:** `feat/landing`
 **Objetivo:** Página pública `/` de apresentação do PipeFlow CRM. Totalmente estática, sem autenticação. Referências visuais: HubSpot, Pipedrive.
 
 ### Entregas — Interface
 
-- [ ] Componente `src/components/landing/Navbar.tsx` (logo + links + botão "Entrar")
-- [ ] Seção Hero: headline, subtítulo, CTA primário "Começar grátis" + CTA secundário "Ver demo"
-- [ ] Seção Features: 3–4 cards com ícones (Pipeline, Leads, Dashboard, Multi-empresa)
-- [ ] Seção Pricing: cards Free e Pro com listas de features e botão de upgrade
-- [ ] Seção CTA final: call-to-action com fundo colorido
-- [ ] Componente Footer com links básicos
-- [ ] Layout responsivo (mobile-first)
-- [ ] `src/app/page.tsx` montando todas as seções
-- [ ] `src/app/layout.tsx` com fonte Inter + metadata
+- [x] Componente `src/components/landing/Navbar.tsx` (logo + links + botão "Começar grátis", menu mobile colapsável)
+- [x] Seção Hero: headline, subtítulo, CTA primário "Começar grátis" + CTA secundário "Ver demo"
+- [x] Seção Features: 6 cards com ícones (Pipeline Kanban, Gestão de Leads, Dashboard de Métricas, Multi-empresa, Histórico de Atividades, Convites de Equipe)
+- [x] Seção Pricing: cards Grátis e Pro com listas de features e botão de upgrade
+- [x] Seção CTA final: call-to-action com fundo colorido (chartreuse, brand guide v2)
+- [x] Componente Footer com links básicos
+- [x] Layout responsivo (mobile-first) — validado via Playwright em 1440px e 390px, sem overflow horizontal
+- [x] `src/app/page.tsx` montando todas as seções
+- [x] `src/app/layout.tsx` com fonte Inter + metadata
 
 ### Entregas — Backend/Config
 

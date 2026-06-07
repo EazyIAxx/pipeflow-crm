@@ -1,36 +1,57 @@
+import { Syne, DM_Sans, IBM_Plex_Mono } from "next/font/google";
+
+import { CtaSection } from "@/components/landing/CtaSection";
+import { FeaturesSection } from "@/components/landing/FeaturesSection";
+import { Footer } from "@/components/landing/Footer";
+import { HeroSection } from "@/components/landing/HeroSection";
+import { Navbar } from "@/components/landing/Navbar";
+import { NoiseOverlay } from "@/components/landing/NoiseOverlay";
+import { PricingSection } from "@/components/landing/PricingSection";
+import { StatsSection } from "@/components/landing/StatsSection";
+
+/**
+ * PipeFlow Brand Guide v2 — "Editorial Brutalist x Fintech"
+ *
+ * Loaded LOCALLY for the public landing route only — an isolated visual
+ * island, same pattern as /pipeline and /dashboard. The authenticated app
+ * shell (Sidebar, Header, leads, etc.) keeps using Inter / the shadcn slate
+ * theme from src/app/layout.tsx.
+ */
+const pfDisplay = Syne({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-pf-display",
+});
+
+const pfBody = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-pf-body",
+});
+
+const pfMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-pf-mono",
+});
+
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-8">
-      <div className="flex flex-col items-center gap-2 text-center">
-        <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center mb-2">
-          <span className="text-background font-bold text-xl">P</span>
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          PipeFlow CRM
-        </h1>
-        <p className="text-muted-foreground text-base max-w-sm">
-          Gestão de leads e pipeline de vendas para PMEs e freelancers.
-        </p>
+    <div
+      className={`${pfDisplay.variable} ${pfBody.variable} ${pfMono.variable} relative bg-pf-bg font-pf-body text-pf-text`}
+    >
+      <NoiseOverlay />
+      <div className="relative z-10">
+        <Navbar />
+        <main>
+          <HeroSection />
+          <StatsSection />
+          <FeaturesSection />
+          <PricingSection />
+          <CtaSection />
+        </main>
+        <Footer />
       </div>
-
-      <div className="flex gap-3">
-        <a
-          href="/login"
-          className="inline-flex items-center justify-center rounded-md bg-foreground text-background px-5 h-10 text-sm font-medium hover:opacity-90 transition-opacity"
-        >
-          Entrar
-        </a>
-        <a
-          href="/signup"
-          className="inline-flex items-center justify-center rounded-md border border-border px-5 h-10 text-sm font-medium hover:bg-muted transition-colors"
-        >
-          Criar conta
-        </a>
-      </div>
-
-      <p className="text-xs text-muted-foreground">
-        Landing page em construção — M1
-      </p>
     </div>
   );
 }
