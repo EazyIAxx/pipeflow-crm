@@ -66,6 +66,30 @@ const config: Config = {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+
+        // PipeFlow Brand Guide v2 — "Editorial Brutalist x Fintech"
+        // Isolated visual-island tokens for the Kanban board only (flat hex,
+        // no HSL indirection). Additive — do not remove existing tokens above.
+        "pf-bg": "#0C0C0E",
+        "pf-surface": "#141416",
+        "pf-surface-2": "#1A1A1E",
+        "pf-border": "#2A2A2E",
+        "pf-border-subtle": "#1E1E22",
+        "pf-text": "#E8E8E8",
+        "pf-text-secondary": "#8A8A8F",
+        "pf-text-muted": "#555559",
+        "pf-accent": "#CAFF33",
+        "pf-positive": "#2ED573",
+        "pf-negative": "#FF4757",
+        "pf-warm": "#FF6B35",
+        "pf-cool": "#5B7FFF",
+        // Stage-specific aliases mapped from the Stage enum
+        "pf-stage-new-lead": "#5B7FFF",
+        "pf-stage-contacted": "#00B4D8",
+        "pf-stage-proposal": "#CAFF33",
+        "pf-stage-negotiation": "#FF6B35",
+        "pf-stage-won": "#2ED573",
+        "pf-stage-lost": "#FF4757",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -74,6 +98,11 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        // PipeFlow Brand Guide v2 fonts — loaded locally on the pipeline route
+        // segment only (see app/(app)/[workspaceSlug]/pipeline/page.tsx)
+        "pf-display": ["var(--font-pf-display)", "system-ui", "sans-serif"],
+        "pf-body": ["var(--font-pf-body)", "system-ui", "sans-serif"],
+        "pf-mono": ["var(--font-pf-mono)", "ui-monospace", "monospace"],
       },
       keyframes: {
         "accordion-down": {
