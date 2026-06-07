@@ -1,27 +1,96 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { Plus } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { LeadFilters } from "@/components/leads/LeadFilters";
+import { LeadTable } from "@/components/leads/LeadTable";
+import { LeadForm, type LeadFormValues } from "@/components/leads/LeadForm";
+import { MOCK_LEADS, type MockLead } from "@/lib/mock/leads";
 
-const MOCK_LEADS = [
-  { id: "1", name: "Ana Paula Rocha", company: "Rocha & Associados", email: "ana@rocha.com", status: "active" },
-  { id: "2", name: "Carlos Mendes", company: "TechStart Ltda", email: "carlos@techstart.io", status: "active" },
-  { id: "3", name: "Fernanda Lima", company: "Lima Consultoria", email: "fernanda@lima.com.br", status: "inactive" },
-  { id: "4", name: "Ricardo Torres", company: "Torres Group", email: "ri@torres.com", status: "converted" },
-];
-
-const STATUS_LABEL: Record<string, string> = {
-  active: "Ativo",
-  inactive: "Inativo",
-  converted: "Convertido",
-};
-
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  active: "default",
-  inactive: "secondary",
-  converted: "outline",
-};
+function createId() {
+  return `lead-${Math.random().toString(36).slice(2, 9)}`;
+}
 
 export default function LeadsPage() {
+  const params = useParams<{ workspaceSlug: string }>();
+  const workspaceSlug = params.workspaceSlug;
+
+  const [leads, setLeads] = useState<MockLead[]>(MOCK_LEADS);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
+  const [owner, setOwner] = useState("all");
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingLead, setEditingLead] = useState<MockLead | null>(null);
+  const [deletingLead, setDeletingLead] = useState<MockLead | null>(null);
+
+  const filteredLeads = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return leads.filter((lead) => {
+      const matchesQuery =
+        !query ||
+        lead.name.toLowerCase().includes(query) ||
+        lead.company.toLowerCase().includes(query);
+      const matchesStatus = status === "all" || lead.status === status;
+      const matchesOwner = owner === "all" || lead.owner === owner;
+      return matchesQuery && matchesStatus && matchesOwner;
+    });
+  }, [leads, search, status, owner]);
+
+  function handleCreate() {
+    setEditingLead(null);
+    setFormOpen(true);
+  }
+
+  function handleEdit(lead: MockLead) {
+    setEditingLead(lead);
+    setFormOpen(true);
+  }
+
+  function handleSubmit(values: LeadFormValues) {
+    if (editingLead) {
+      setLeads((prev) =>
+        prev.map((lead) =>
+          lead.id === editingLead.id
+            ? { ...lead, ...values, email: values.email ?? "", phone: values.phone ?? "", jobTitle: values.jobTitle ?? "" }
+            : lead
+        )
+      );
+    } else {
+      setLeads((prev) => [
+        {
+          id: createId(),
+          name: values.name,
+          email: values.email ?? "",
+          phone: values.phone ?? "",
+          company: values.company,
+          jobTitle: values.jobTitle ?? "",
+          status: values.status,
+          owner: values.owner,
+          createdAt: new Date().toISOString().slice(0, 10),
+        },
+        ...prev,
+      ]);
+    }
+  }
+
+  function handleConfirmDelete() {
+    if (!deletingLead) return;
+    setLeads((prev) => prev.filter((lead) => lead.id !== deletingLead.id));
+    setDeletingLead(null);
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -31,46 +100,48 @@ export default function LeadsPage() {
             Gerencie seus contatos e clientes em potencial.
           </p>
         </div>
-        <Button size="sm" className="gap-1.5">
+        <Button size="sm" className="gap-1.5" onClick={handleCreate}>
           <Plus className="h-4 w-4" />
           Novo Lead
         </Button>
       </div>
 
-      {/* Table */}
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted/30">
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Nome</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Empresa</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden lg:table-cell">E-mail</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {MOCK_LEADS.map((lead, i) => (
-              <tr
-                key={lead.id}
-                className={`border-b border-border last:border-0 hover:bg-muted/20 cursor-pointer transition-colors ${i % 2 === 0 ? "" : "bg-muted/5"}`}
-              >
-                <td className="px-4 py-3 font-medium">{lead.name}</td>
-                <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{lead.company}</td>
-                <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">{lead.email}</td>
-                <td className="px-4 py-3">
-                  <Badge variant={STATUS_VARIANT[lead.status]}>
-                    {STATUS_LABEL[lead.status]}
-                  </Badge>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <LeadFilters
+        search={search}
+        onSearchChange={setSearch}
+        status={status}
+        onStatusChange={setStatus}
+        owner={owner}
+        onOwnerChange={setOwner}
+      />
 
-      <p className="text-xs text-muted-foreground">
-        Busca, filtros e paginação — implementados em M4
-      </p>
+      <LeadTable
+        leads={filteredLeads}
+        workspaceSlug={workspaceSlug}
+        onEdit={handleEdit}
+        onDelete={setDeletingLead}
+      />
+
+      <LeadForm open={formOpen} onOpenChange={setFormOpen} lead={editingLead} onSubmit={handleSubmit} />
+
+      <Dialog open={!!deletingLead} onOpenChange={(open) => !open && setDeletingLead(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Excluir lead</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir <strong>{deletingLead?.name}</strong>? Essa ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeletingLead(null)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
