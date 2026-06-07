@@ -34,22 +34,28 @@ export function UserMenu({ workspaceSlug }: UserMenuProps) {
     email: string;
     initials: string;
   } | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return;
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      setLoaded(true);
+      return;
+    }
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
-      const email = user.email ?? "";
-      const rawName =
-        user.user_metadata?.full_name ??
-        user.user_metadata?.name ??
-        email.split("@")[0];
-      setUserData({
-        name: rawName,
-        email,
-        initials: getInitials(rawName),
-      });
+      if (user) {
+        const email = user.email ?? "";
+        const rawName =
+          user.user_metadata?.full_name ??
+          user.user_metadata?.name ??
+          email.split("@")[0];
+        setUserData({
+          name: rawName,
+          email,
+          initials: getInitials(rawName),
+        });
+      }
+      setLoaded(true);
     });
   }, []);
 
@@ -61,7 +67,7 @@ export function UserMenu({ workspaceSlug }: UserMenuProps) {
     router.push("/login");
   }
 
-  const name = userData?.name ?? "";
+  const name = userData?.name ?? (loaded ? "Usuário" : "");
   const email = userData?.email ?? "";
   const initials = userData?.initials ?? "?";
 
@@ -95,7 +101,10 @@ export function UserMenu({ workspaceSlug }: UserMenuProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 cursor-pointer">
+        <DropdownMenuItem
+          className="gap-2 cursor-pointer"
+          onSelect={() => router.push(`/${workspaceSlug}/settings`)}
+        >
           <User className="h-4 w-4" />
           Perfil
         </DropdownMenuItem>
