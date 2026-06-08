@@ -144,6 +144,10 @@ prisma/
 - [x] Inicializar shadcn/ui (`npx shadcn@latest init`) com tema slate
 - [x] Instalar componentes shadcn base: `button`, `input`, `label`, `card`, `badge`, `avatar`, `dropdown-menu`, `dialog`, `form`, `sheet`, `separator`, `skeleton`, `toast`, `tooltip`
 - [x] Escrever `prisma/schema.prisma` com todos os models: `User`, `Workspace`, `WorkspaceMember`, `Lead`, `Deal`, `Activity` + enums
+- [x] Gerar migration inicial do schema (`prisma/migrations/20260608120000_init`)
+- [x] Trigger de sincronização `auth.users` → `public.users` (`prisma/migrations/20260608120100_auth_user_sync`)
+- [x] Configurar RLS em todas as tabelas — policies escopadas por workspace via `is_workspace_member`/`is_workspace_admin` (`prisma/migrations/20260608120200_enable_rls`)
+- [x] Gerar tipos TypeScript do banco em `src/types/supabase.ts` e conectar aos clients Supabase
 - [x] Criar `src/lib/supabase/client.ts` (browser client)
 - [x] Criar `src/lib/supabase/server.ts` (server client com cookies)
 - [x] Criar `src/server/trpc.ts` (init tRPC + context com auth Supabase)
