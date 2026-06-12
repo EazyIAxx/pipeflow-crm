@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,20 +11,31 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-function formatWorkspaceName(slug: string): string {
-  return slug
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
+import { Skeleton } from "@/components/ui/skeleton";
+import { trpc } from "@/lib/trpc/client";
 
 interface WorkspaceSwitcherProps {
   workspaceSlug: string;
 }
 
+function initialOf(name: string): string {
+  return name.trim().charAt(0).toUpperCase() || "?";
+}
+
 export function WorkspaceSwitcher({ workspaceSlug }: WorkspaceSwitcherProps) {
-  const name = formatWorkspaceName(workspaceSlug);
+  const { data: workspaces, isLoading } = trpc.workspace.list.useQuery();
+
+  const current = workspaces?.find((ws) => ws.slug === workspaceSlug);
+  const others = workspaces?.filter((ws) => ws.slug !== workspaceSlug) ?? [];
+
+  if (isLoading || !current) {
+    return (
+      <div className="flex items-center gap-2 px-2 h-10">
+        <Skeleton className="h-6 w-6 rounded-md" />
+        <Skeleton className="h-4 w-28" />
+      </div>
+    );
+  }
 
   return (
     <DropdownMenu>
@@ -34,9 +46,9 @@ export function WorkspaceSwitcher({ workspaceSlug }: WorkspaceSwitcherProps) {
         >
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground text-xs font-bold">
-              {name[0]}
+              {initialOf(current.name)}
             </div>
-            <span className="truncate text-sm font-medium">{name}</span>
+            <span className="truncate text-sm font-medium">{current.name}</span>
           </div>
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-40" />
         </Button>
@@ -45,15 +57,28 @@ export function WorkspaceSwitcher({ workspaceSlug }: WorkspaceSwitcherProps) {
         <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
           Workspaces
         </DropdownMenuLabel>
-        <DropdownMenuItem className="gap-2 cursor-default">
+
+        <DropdownMenuItem className="gap-2 cursor-default" disabled>
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary text-xs font-bold">
-            {name[0]}
+            {initialOf(current.name)}
           </div>
-          <span className="flex-1 truncate text-sm">{name}</span>
+          <span className="flex-1 truncate text-sm">{current.name}</span>
           <Check className="h-3.5 w-3.5 text-primary" />
         </DropdownMenuItem>
+
+        {others.map((ws) => (
+          <DropdownMenuItem key={ws.id} asChild className="gap-2 cursor-pointer">
+            <Link href={`/${ws.slug}/dashboard`}>
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground text-xs font-bold">
+                {initialOf(ws.name)}
+              </div>
+              <span className="flex-1 truncate text-sm">{ws.name}</span>
+            </Link>
+          </DropdownMenuItem>
+        ))}
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 cursor-pointer text-muted-foreground">
+        <DropdownMenuItem className="gap-2 cursor-default text-muted-foreground" disabled>
           <Plus className="h-4 w-4" />
           <span className="text-sm">Novo workspace</span>
         </DropdownMenuItem>
