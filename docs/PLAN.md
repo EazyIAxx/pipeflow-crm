@@ -193,30 +193,35 @@ prisma/
 
 ## M2 — Auth & Onboarding ✅
 
-**Branch:** `feat/auth` → merged em `main`
+**Branch:** `feat/auth` → merged em `main` | `feat/auth-ui-db-connect` → merged em `main` (PR #8)
 **Objetivo:** Fluxo completo de autenticação (login, signup, recuperação de senha) e onboarding para criação do primeiro workspace.
 
 ### Entregas — Interface
 
 - [x] `src/app/(auth)/login/page.tsx` — formulário e-mail + senha + link "Criar conta"
-- [x] `src/app/(auth)/signup/page.tsx` — formulário nome + e-mail + senha
+- [x] `src/app/(auth)/signup/page.tsx` — formulário nome + e-mail + senha + **tela de verificação de e-mail pós-cadastro**
 - [x] `src/app/(auth)/forgot-password/page.tsx` — formulário de recuperação
-- [x] `src/app/(auth)/layout.tsx` — layout centralizado com logo
-- [x] `src/app/(app)/onboarding/page.tsx` — formulário "Criar seu workspace" (nome da empresa + slug auto-gerado)
+- [x] `src/app/(auth)/layout.tsx` — layout com logo + **Syne/DM Sans/IBM Plex Mono (brand guide v2)**
+- [x] `src/app/(app)/onboarding/page.tsx` + `OnboardingForm.tsx` — formulário "Criar seu workspace"
 - [x] Validação de formulários com `react-hook-form` + `zod`
 - [x] Loading states nos botões de submit
-- [x] Tratamento de erros inline (campo inválido, e-mail já cadastrado, slug em uso)
+- [x] Tratamento de erros inline + **erros Supabase traduzidos para português** (rate limit, already registered)
+- [x] **Auth UI brand guide v2**: dark panels `pf-surface`, tokens `pf-*`, botões `pf-accent` em todas as páginas
 
 ### Entregas — Backend
 
 - [x] Integração Supabase Auth: `signInWithPassword`, `signUp`, `resetPasswordForEmail`
+- [x] **`emailRedirectTo`** adicionado ao `signUp` → redireciona para `/auth/callback` após confirmação
+- [x] **`src/app/auth/callback/route.ts`** — troca `code` por sessão Supabase
 - [x] Middleware `src/middleware.ts` protegendo rotas `/(app)/*`
-- [x] Server Action `createWorkspace` (`src/app/(app)/onboarding/actions.ts`) com verificação de slug único
-- [x] Upsert do `User` no banco após criação de workspace (sync com Supabase Auth)
-- [x] Redirect pós-signup → `/onboarding`
-- [ ] Redirect pós-login: se tem workspace → `/:slug/dashboard`, senão → `/onboarding` *(implementar quando `workspace.list` estiver pronto em M3 backend)*
+- [x] Server Action `createWorkspace` com verificação de slug único
+- [x] Upsert do `User` no banco após criação de workspace
+- [x] Redirect pós-signup → tela de verificação de e-mail
+- [x] **Redirect pós-login**: `resolvePostLoginRedirect` com `try/catch` → workspace existente ou `/onboarding`
+- [x] **DATABASE_URL + DIRECT_URL** conectados ao Supabase (transaction pooler + session pooler)
+- [x] **Migration FK indexes** (`20260609100000_add_fk_indexes_rls_tuning`) aplicada
 
-**Commit final:** `feat: M2 auth & onboarding — Supabase auth, workspace creation, dark mode + M3 polish`
+**Commits:** `feat: M2 auth & onboarding` + `feat: auth UI redesign + Supabase DB connect + email verification` (PR #8)
 
 ---
 
@@ -241,7 +246,8 @@ prisma/
 
 ### Entregas — Backend
 
-- [ ] tRPC query `workspace.list` — lista workspaces do usuário autenticado
+- [x] tRPC query `workspace.list` — lista workspaces do usuário autenticado (`src/server/routers/workspace.ts`)
+- [x] tRPC mutation `workspace.create` — cria workspace + membership
 - [ ] tRPC query `workspace.getBySlug` — dados do workspace atual
 - [ ] Server Component passando workspace para o layout via params
 - [ ] Guard: se slug não existe ou usuário não é membro → 404
