@@ -45,6 +45,7 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith("/signup") &&
     !pathname.startsWith("/forgot-password") &&
     !pathname.startsWith("/invite") &&
+    !pathname.startsWith("/auth") &&
     !pathname.startsWith("/api") &&
     pathname !== "/";
 

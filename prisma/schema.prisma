@@ -83,6 +83,7 @@ model WorkspaceMember {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([workspaceId, userId])
+  @@index([userId])
   @@map("workspace_members")
 }
 
@@ -97,6 +98,7 @@ model Invite {
   createdAt   DateTime  @default(now())
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
+  @@index([workspaceId])
   @@map("invites")
 }
 
@@ -116,6 +118,7 @@ model Lead {
   deals       Deal[]
   activities  Activity[]
 
+  @@index([workspaceId, status])
   @@map("leads")
 }
 
@@ -135,6 +138,9 @@ model Deal {
   lead        Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
   owner       User      @relation(fields: [ownerId], references: [id])
 
+  @@index([workspaceId, stage])
+  @@index([leadId])
+  @@index([ownerId])
   @@map("deals")
 }
 
@@ -149,5 +155,7 @@ model Activity {
   lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
   author      User         @relation(fields: [authorId], references: [id])
 
+  @@index([leadId, date(sort: Desc)])
+  @@index([authorId])
   @@map("activities")
 }
