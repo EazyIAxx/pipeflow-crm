@@ -3,25 +3,31 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CalendarClock } from "lucide-react";
+import type { Stage } from "@prisma/client";
 
 import { cn } from "@/lib/utils";
-import {
-  formatCurrency,
-  formatDueDate,
-  isDueSoon,
-  STAGE_TEXT_CLASS,
-  type MockDeal,
-  type MockOwner,
-} from "./mock-data";
+import { formatCurrency, formatDueDate, isDueSoon, STAGE_TEXT_CLASS } from "./mock-data";
+
+export interface Deal {
+  id: string;
+  title: string;
+  value: number;
+  stage: Stage;
+  ownerId: string;
+  ownerName: string;
+  ownerInitials: string;
+  dueDate: string | null;
+  leadId: string;
+  leadName: string;
+  company: string;
+}
 
 interface DealCardProps {
-  deal: MockDeal;
-  owner: MockOwner | undefined;
-  /** When true, render the static "preview" look used inside the DragOverlay. */
+  deal: Deal;
   overlay?: boolean;
 }
 
-export function DealCard({ deal, owner, overlay = false }: DealCardProps) {
+export function DealCard({ deal, overlay = false }: DealCardProps) {
   const {
     attributes,
     listeners,
@@ -53,7 +59,6 @@ export function DealCard({ deal, owner, overlay = false }: DealCardProps) {
         overlay && "border-pf-accent/50 shadow-2xl shadow-black/60"
       )}
     >
-      {/* Accent bar — appears on hover, width animates 0 -> 100% */}
       <span
         aria-hidden
         className={cn(
@@ -95,12 +100,12 @@ export function DealCard({ deal, owner, overlay = false }: DealCardProps) {
             </span>
           )}
 
-          {owner && (
+          {deal.ownerInitials && (
             <span
-              title={owner.name}
+              title={deal.ownerName}
               className="flex h-6 w-6 items-center justify-center rounded-full border border-pf-border bg-pf-surface-2 font-pf-mono text-[10px] font-medium text-pf-text-secondary"
             >
-              {owner.initials}
+              {deal.ownerInitials}
             </span>
           )}
         </div>

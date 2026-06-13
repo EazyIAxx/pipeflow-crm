@@ -14,49 +14,80 @@ import {
 } from "@dnd-kit/core";
 import type { Stage } from "@prisma/client";
 
-import { DealCard } from "./DealCard";
+import { trpc } from "@/lib/trpc/client";
+import { DealCard, type Deal } from "./DealCard";
 import { KanbanColumn } from "./KanbanColumn";
 import { DealForm, type DealFormValues } from "./DealForm";
-import {
-  MOCK_DEALS,
-  MOCK_OWNERS,
-  MOCK_PIPELINE_LEADS,
-  STAGE_ORDER,
-  type MockDeal,
-} from "./mock-data";
+import { STAGE_ORDER } from "./mock-data";
 
-export function KanbanBoard() {
-  const [deals, setDeals] = useState<MockDeal[]>(MOCK_DEALS);
-  const [activeDeal, setActiveDeal] = useState<MockDeal | null>(null);
+interface KanbanBoardProps {
+  workspaceSlug: string;
+}
+
+export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
+  const utils = trpc.useUtils();
+
+  const { data: deals = [] } = trpc.deals.listByWorkspace.useQuery({ workspaceSlug });
+  const { data: leads = [] } = trpc.leads.list.useQuery({ workspaceSlug });
+  const { data: members = [] } = trpc.workspace.getMembers.useQuery({ slug: workspaceSlug });
+
+  const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
+  // Local stage override while the user is dragging — avoids calling the mutation on every pixel
+  const [dragOverride, setDragOverride] = useState<{ id: string; stage: Stage } | null>(null);
+
   const [formOpen, setFormOpen] = useState(false);
   const [formStage, setFormStage] = useState<Stage>("NEW_LEAD");
 
-  const ownersById = useMemo(() => new Map(MOCK_OWNERS.map((owner) => [owner.id, owner])), []);
-  const leadsById = useMemo(() => new Map(MOCK_PIPELINE_LEADS.map((lead) => [lead.id, lead])), []);
+  const createMutation = trpc.deals.create.useMutation({
+    onSuccess: () => {
+      utils.deals.listByWorkspace.invalidate({ workspaceSlug });
+      setFormOpen(false);
+    },
+  });
+
+  const updateStageMutation = trpc.deals.updateStage.useMutation({
+    onMutate: async ({ dealId, stage }) => {
+      await utils.deals.listByWorkspace.cancel({ workspaceSlug });
+      const previous = utils.deals.listByWorkspace.getData({ workspaceSlug });
+      utils.deals.listByWorkspace.setData({ workspaceSlug }, (old) =>
+        old?.map((d) => (d.id === dealId ? { ...d, stage } : d)),
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        utils.deals.listByWorkspace.setData({ workspaceSlug }, context.previous);
+      }
+    },
+    onSettled: () => {
+      utils.deals.listByWorkspace.invalidate({ workspaceSlug });
+    },
+  });
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 6 },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   );
 
+  const displayDeals = useMemo<Deal[]>(() => {
+    if (!dragOverride) return deals;
+    return deals.map((d) => (d.id === dragOverride.id ? { ...d, stage: dragOverride.stage } : d));
+  }, [deals, dragOverride]);
+
   const dealsByStage = useMemo(() => {
-    const map = new Map<Stage, MockDeal[]>(STAGE_ORDER.map((stage) => [stage, []]));
-    for (const deal of deals) {
+    const map = new Map<Stage, Deal[]>(STAGE_ORDER.map((stage) => [stage, []]));
+    for (const deal of displayDeals) {
       map.get(deal.stage)?.push(deal);
     }
     return map;
-  }, [deals]);
+  }, [displayDeals]);
 
-  function findDeal(id: string): MockDeal | undefined {
-    return deals.find((deal) => deal.id === id);
+  function findDeal(id: string): Deal | undefined {
+    return deals.find((d) => d.id === id);
   }
 
   function resolveStageFromDroppableId(id: string | number): Stage | undefined {
     const idStr = String(id);
-    if ((STAGE_ORDER as string[]).includes(idStr)) {
-      return idStr as Stage;
-    }
+    if ((STAGE_ORDER as string[]).includes(idStr)) return idStr as Stage;
     return findDeal(idStr)?.stage;
   }
 
@@ -68,37 +99,26 @@ export function KanbanBoard() {
   function handleDragOver(event: DragOverEvent) {
     const { active, over } = event;
     if (!over) return;
-
-    const activeDealId = String(active.id);
     const targetStage = resolveStageFromDroppableId(over.id);
     if (!targetStage) return;
-
-    setDeals((current) => {
-      const dragged = current.find((deal) => deal.id === activeDealId);
-      if (!dragged || dragged.stage === targetStage) return current;
-
-      return current.map((deal) =>
-        deal.id === activeDealId ? { ...deal, stage: targetStage } : deal
-      );
-    });
+    setDragOverride({ id: String(active.id), stage: targetStage });
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveDeal(null);
+    setDragOverride(null);
+
     if (!over) return;
 
-    const activeDealId = String(active.id);
+    const dealId = String(active.id);
     const targetStage = resolveStageFromDroppableId(over.id);
     if (!targetStage) return;
 
-    // Final, authoritative move — simulates the optimistic local mutation that
-    // will later be replaced by the `deals.updateStage` tRPC mutation.
-    setDeals((current) =>
-      current.map((deal) =>
-        deal.id === activeDealId ? { ...deal, stage: targetStage } : deal
-      )
-    );
+    const original = findDeal(dealId);
+    if (!original || original.stage === targetStage) return;
+
+    updateStageMutation.mutate({ workspaceSlug, dealId, stage: targetStage });
   }
 
   function handleAddDeal(stage: Stage) {
@@ -107,22 +127,16 @@ export function KanbanBoard() {
   }
 
   function handleCreateDeal(values: DealFormValues) {
-    const lead = leadsById.get(values.leadId);
-    const numericValue = Number(values.value.replace(",", "."));
-
-    const newDeal: MockDeal = {
-      id: `deal-${Date.now()}`,
+    const numericValue = parseFloat(values.value.replace(",", "."));
+    createMutation.mutate({
+      workspaceSlug,
       title: values.title,
       leadId: values.leadId,
-      leadName: lead?.name ?? "Lead não encontrado",
-      company: lead?.company ?? "",
-      value: Number.isFinite(numericValue) ? numericValue : 0,
-      stage: values.stage,
       ownerId: values.ownerId,
-      dueDate: values.dueDate ? values.dueDate : null,
-    };
-
-    setDeals((current) => [...current, newDeal]);
+      stage: values.stage,
+      value: Number.isFinite(numericValue) ? numericValue : undefined,
+      dueDate: values.dueDate || undefined,
+    });
   }
 
   return (
@@ -149,7 +163,6 @@ export function KanbanBoard() {
               key={stage}
               stage={stage}
               deals={dealsByStage.get(stage) ?? []}
-              ownersById={ownersById}
               onAddDeal={handleAddDeal}
             />
           ))}
@@ -158,7 +171,7 @@ export function KanbanBoard() {
         <DragOverlay>
           {activeDeal ? (
             <div className="w-[284px]">
-              <DealCard deal={activeDeal} owner={ownersById.get(activeDeal.ownerId)} overlay />
+              <DealCard deal={activeDeal} overlay />
             </div>
           ) : null}
         </DragOverlay>
@@ -169,6 +182,9 @@ export function KanbanBoard() {
         onOpenChange={setFormOpen}
         defaultStage={formStage}
         onSubmit={handleCreateDeal}
+        isPending={createMutation.isPending}
+        leads={leads}
+        members={members}
       />
     </div>
   );

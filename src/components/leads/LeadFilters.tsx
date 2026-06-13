@@ -9,15 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LEAD_OWNERS, LEAD_STATUS_LABEL } from "@/lib/mock/leads";
+
+const LEAD_STATUS_LABEL: Record<string, string> = {
+  active: "Ativo",
+  inactive: "Inativo",
+  converted: "Convertido",
+};
 
 interface LeadFiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
   status: string;
   onStatusChange: (value: string) => void;
-  owner: string;
-  onOwnerChange: (value: string) => void;
 }
 
 export function LeadFilters({
@@ -25,8 +28,6 @@ export function LeadFilters({
   onSearchChange,
   status,
   onStatusChange,
-  owner,
-  onOwnerChange,
 }: LeadFiltersProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -49,20 +50,6 @@ export function LeadFilters({
           {Object.entries(LEAD_STATUS_LABEL).map(([value, label]) => (
             <SelectItem key={value} value={value}>
               {label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <Select value={owner} onValueChange={onOwnerChange}>
-        <SelectTrigger className="sm:w-48">
-          <SelectValue placeholder="Responsável" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos os responsáveis</SelectItem>
-          {LEAD_OWNERS.map((name) => (
-            <SelectItem key={name} value={name}>
-              {name}
             </SelectItem>
           ))}
         </SelectContent>

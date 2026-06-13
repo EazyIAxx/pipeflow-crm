@@ -1,12 +1,11 @@
 "use client";
 
-import { Briefcase, Building2, Mail, Phone, User, Pencil, Trash2 } from "lucide-react";
+import { Briefcase, Building2, Mail, Phone, Pencil, Trash2 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { LeadStatusBadge } from "@/components/leads/LeadStatusBadge";
-import type { MockLead } from "@/lib/mock/leads";
 
 function getInitials(name: string) {
   return name
@@ -17,7 +16,7 @@ function getInitials(name: string) {
     .join("");
 }
 
-function formatDate(value: string) {
+function formatDate(value: Date | string) {
   return new Date(value).toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "long",
@@ -25,8 +24,19 @@ function formatDate(value: string) {
   });
 }
 
+interface Lead {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  jobTitle: string | null;
+  status: string;
+  createdAt: Date | string;
+}
+
 interface LeadProfileProps {
-  lead: MockLead;
+  lead: Lead;
   onEdit: () => void;
   onDelete: () => void;
 }
@@ -44,7 +54,7 @@ export function LeadProfile({ lead, onEdit, onDelete }: LeadProfileProps) {
           <div className="flex flex-col gap-1">
             <h3 className="text-lg font-bold tracking-tight">{lead.name}</h3>
             <p className="text-sm text-muted-foreground">{lead.jobTitle || "—"}</p>
-            <p className="text-sm text-muted-foreground">{lead.company}</p>
+            <p className="text-sm text-muted-foreground">{lead.company || "—"}</p>
             <LeadStatusBadge status={lead.status} className="w-fit mt-0.5" />
           </div>
         </div>
@@ -82,7 +92,7 @@ export function LeadProfile({ lead, onEdit, onDelete }: LeadProfileProps) {
           <Building2 className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
           <div>
             <dt className="text-xs text-muted-foreground">Empresa</dt>
-            <dd className="text-sm font-medium">{lead.company}</dd>
+            <dd className="text-sm font-medium">{lead.company || "—"}</dd>
           </div>
         </div>
         <div className="flex items-start gap-3">
@@ -90,13 +100,6 @@ export function LeadProfile({ lead, onEdit, onDelete }: LeadProfileProps) {
           <div>
             <dt className="text-xs text-muted-foreground">Cargo</dt>
             <dd className="text-sm font-medium">{lead.jobTitle || "—"}</dd>
-          </div>
-        </div>
-        <div className="flex items-start gap-3">
-          <User className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-          <div>
-            <dt className="text-xs text-muted-foreground">Responsável</dt>
-            <dd className="text-sm font-medium">{lead.owner}</dd>
           </div>
         </div>
         <div className="flex items-start gap-3">
