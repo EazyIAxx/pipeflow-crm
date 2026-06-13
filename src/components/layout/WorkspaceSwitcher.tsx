@@ -48,7 +48,7 @@ export function WorkspaceSwitcher({ workspaceSlug }: WorkspaceSwitcherProps) {
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground text-xs font-bold">
               {initialOf(current.name)}
             </div>
-            <span className="truncate text-sm font-medium">{current.name}</span>
+            <span className="truncate text-sm font-medium text-yellow-400">{current.name}</span>
           </div>
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-40" />
         </Button>

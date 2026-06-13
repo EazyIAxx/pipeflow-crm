@@ -65,10 +65,10 @@ export function SidebarContent({ workspaceSlug }: SidebarContentProps) {
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary shadow-sm">
-          <Zap className="h-4 w-4 text-sidebar-primary-foreground" />
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-400 shadow-sm">
+          <Zap className="h-4 w-4 text-black" />
         </div>
-        <span className="font-bold text-[15px] tracking-tight text-foreground">
+        <span className="font-bold text-[15px] tracking-tight text-yellow-400">
           PipeFlow
         </span>
       </div>
