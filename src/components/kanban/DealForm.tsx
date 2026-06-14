@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { STAGE_LABEL, STAGE_ORDER } from "./mock-data";
+import type { Deal } from "./DealCard";
 
 export interface PipelineLead {
   id: string;
@@ -64,9 +65,25 @@ interface DealFormProps {
   isPending?: boolean;
   leads: PipelineLead[];
   members: WorkspaceMember[];
+  editingDeal?: Deal | null;
 }
 
-function buildDefaultValues(stage: Stage, leads: PipelineLead[], members: WorkspaceMember[]): DealFormValues {
+function buildDefaultValues(
+  stage: Stage,
+  leads: PipelineLead[],
+  members: WorkspaceMember[],
+  deal?: Deal | null,
+): DealFormValues {
+  if (deal) {
+    return {
+      title: deal.title,
+      value: deal.value > 0 ? String(deal.value) : "",
+      leadId: deal.leadId,
+      ownerId: deal.ownerId,
+      stage: deal.stage,
+      dueDate: deal.dueDate ?? "",
+    };
+  }
   return {
     title: "",
     value: "",
@@ -77,7 +94,7 @@ function buildDefaultValues(stage: Stage, leads: PipelineLead[], members: Worksp
   };
 }
 
-export function DealForm({ open, onOpenChange, defaultStage, onSubmit, isPending, leads, members }: DealFormProps) {
+export function DealForm({ open, onOpenChange, defaultStage, onSubmit, isPending, leads, members, editingDeal }: DealFormProps) {
   const {
     register,
     handleSubmit,
@@ -90,11 +107,13 @@ export function DealForm({ open, onOpenChange, defaultStage, onSubmit, isPending
     defaultValues: buildDefaultValues(defaultStage, leads, members),
   });
 
+  const isEditing = !!editingDeal;
+
   useEffect(() => {
     if (open) {
-      reset(buildDefaultValues(defaultStage, leads, members));
+      reset(buildDefaultValues(defaultStage, leads, members, editingDeal));
     }
-  }, [open, defaultStage, leads, members, reset]);
+  }, [open, defaultStage, leads, members, editingDeal, reset]);
 
   function handleFormSubmit(values: DealFormValues) {
     onSubmit(values);
@@ -114,10 +133,12 @@ export function DealForm({ open, onOpenChange, defaultStage, onSubmit, isPending
       >
         <DialogHeader>
           <DialogTitle className="font-pf-display text-lg font-bold tracking-tight text-pf-text">
-            Novo negócio
+            {isEditing ? "Editar negócio" : "Novo negócio"}
           </DialogTitle>
           <DialogDescription className="text-pf-text-secondary">
-            Cadastre um negócio e posicione-o em uma etapa do funil.
+            {isEditing
+              ? "Atualize as informações do negócio."
+              : "Cadastre um negócio e posicione-o em uma etapa do funil."}
           </DialogDescription>
         </DialogHeader>
 
@@ -241,7 +262,7 @@ export function DealForm({ open, onOpenChange, defaultStage, onSubmit, isPending
               className="gap-1.5 rounded-[8px] bg-pf-accent font-pf-body font-medium text-pf-bg hover:bg-pf-accent/90"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              Criar negócio
+              {isEditing ? "Salvar alterações" : "Criar negócio"}
             </Button>
           </DialogFooter>
         </form>

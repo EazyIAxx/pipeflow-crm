@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Pencil } from "lucide-react";
 import type { Stage } from "@prisma/client";
 
 import { cn } from "@/lib/utils";
@@ -25,9 +25,10 @@ export interface Deal {
 interface DealCardProps {
   deal: Deal;
   overlay?: boolean;
+  onEdit?: () => void;
 }
 
-export function DealCard({ deal, overlay = false }: DealCardProps) {
+export function DealCard({ deal, overlay = false, onEdit }: DealCardProps) {
   const {
     attributes,
     listeners,
@@ -68,9 +69,21 @@ export function DealCard({ deal, overlay = false }: DealCardProps) {
         )}
       />
 
-      <p className="font-pf-body text-[13px] font-medium leading-snug text-pf-text">
-        {deal.title}
-      </p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-pf-body text-[13px] font-medium leading-snug text-pf-text">
+          {deal.title}
+        </p>
+        {onEdit && !overlay && (
+          <button
+            aria-label="Editar negócio"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            className="shrink-0 rounded p-0.5 text-pf-text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-pf-accent"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
       <p className="mt-1 truncate font-pf-body text-xs text-pf-text-secondary">
         {deal.leadName} <span className="text-pf-text-muted">— {deal.company}</span>
       </p>

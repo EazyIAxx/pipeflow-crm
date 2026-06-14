@@ -9,7 +9,6 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-  type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
 import type { Stage } from "@prisma/client";
@@ -32,16 +31,22 @@ export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
   const { data: members = [] } = trpc.workspace.getMembers.useQuery({ slug: workspaceSlug });
 
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
-  // Local stage override while the user is dragging — avoids calling the mutation on every pixel
-  const [dragOverride, setDragOverride] = useState<{ id: string; stage: Stage } | null>(null);
-
   const [formOpen, setFormOpen] = useState(false);
   const [formStage, setFormStage] = useState<Stage>("NEW_LEAD");
+  const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
 
   const createMutation = trpc.deals.create.useMutation({
     onSuccess: () => {
       utils.deals.listByWorkspace.invalidate({ workspaceSlug });
       setFormOpen(false);
+    },
+  });
+
+  const updateMutation = trpc.deals.update.useMutation({
+    onSuccess: () => {
+      utils.deals.listByWorkspace.invalidate({ workspaceSlug });
+      setFormOpen(false);
+      setEditingDeal(null);
     },
   });
 
@@ -68,51 +73,37 @@ export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   );
 
-  const displayDeals = useMemo<Deal[]>(() => {
-    if (!dragOverride) return deals;
-    return deals.map((d) => (d.id === dragOverride.id ? { ...d, stage: dragOverride.stage } : d));
-  }, [deals, dragOverride]);
-
+  // Stable map — never changes during drag, only after server confirms
   const dealsByStage = useMemo(() => {
     const map = new Map<Stage, Deal[]>(STAGE_ORDER.map((stage) => [stage, []]));
-    for (const deal of displayDeals) {
+    for (const deal of deals) {
       map.get(deal.stage)?.push(deal);
     }
     return map;
-  }, [displayDeals]);
+  }, [deals]);
 
   function findDeal(id: string): Deal | undefined {
     return deals.find((d) => d.id === id);
   }
 
-  function resolveStageFromDroppableId(id: string | number): Stage | undefined {
+  function resolveStage(id: string | number): Stage | undefined {
     const idStr = String(id);
     if ((STAGE_ORDER as string[]).includes(idStr)) return idStr as Stage;
     return findDeal(idStr)?.stage;
   }
 
   function handleDragStart(event: DragStartEvent) {
-    const deal = findDeal(String(event.active.id));
-    setActiveDeal(deal ?? null);
-  }
-
-  function handleDragOver(event: DragOverEvent) {
-    const { active, over } = event;
-    if (!over) return;
-    const targetStage = resolveStageFromDroppableId(over.id);
-    if (!targetStage) return;
-    setDragOverride({ id: String(active.id), stage: targetStage });
+    setActiveDeal(findDeal(String(event.active.id)) ?? null);
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveDeal(null);
-    setDragOverride(null);
 
     if (!over) return;
 
     const dealId = String(active.id);
-    const targetStage = resolveStageFromDroppableId(over.id);
+    const targetStage = resolveStage(over.id);
     if (!targetStage) return;
 
     const original = findDeal(dealId);
@@ -122,13 +113,27 @@ export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
   }
 
   function handleAddDeal(stage: Stage) {
+    setEditingDeal(null);
     setFormStage(stage);
     setFormOpen(true);
   }
 
-  function handleCreateDeal(values: DealFormValues) {
+  function handleEditDeal(deal: Deal) {
+    setEditingDeal(deal);
+    setFormStage(deal.stage);
+    setFormOpen(true);
+  }
+
+  function handleFormClose(open: boolean) {
+    if (!open) {
+      setFormOpen(false);
+      setEditingDeal(null);
+    }
+  }
+
+  function handleFormSubmit(values: DealFormValues) {
     const numericValue = parseFloat(values.value.replace(",", "."));
-    createMutation.mutate({
+    const payload = {
       workspaceSlug,
       title: values.title,
       leadId: values.leadId,
@@ -136,25 +141,37 @@ export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
       stage: values.stage,
       value: Number.isFinite(numericValue) ? numericValue : undefined,
       dueDate: values.dueDate || undefined,
-    });
+    };
+    if (editingDeal) {
+      updateMutation.mutate({ ...payload, dealId: editingDeal.id });
+    } else {
+      createMutation.mutate(payload);
+    }
   }
 
   return (
     <div className="pf-bg min-h-[calc(100vh-8rem)] rounded-2xl border border-pf-border-subtle bg-pf-bg p-6 font-pf-body text-pf-text">
-      <header className="mb-6 flex flex-col gap-1">
-        <h2 className="font-pf-display text-2xl font-bold tracking-tight text-pf-text">
-          Pipeline
-        </h2>
-        <p className="font-pf-body text-sm text-pf-text-secondary">
-          Arraste os negócios entre as etapas do funil para atualizar o estágio.
-        </p>
+      <header className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h2 className="font-pf-display text-2xl font-bold tracking-tight text-pf-text">
+            Pipeline
+          </h2>
+          <p className="font-pf-body text-sm text-pf-text-secondary">
+            Arraste os negócios entre as etapas do funil para atualizar o estágio.
+          </p>
+        </div>
+        <button
+          onClick={() => handleAddDeal("NEW_LEAD")}
+          className="shrink-0 rounded-lg bg-yellow-400 px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90 active:opacity-75"
+        >
+          + Novo Negócio
+        </button>
       </header>
 
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-4 overflow-x-auto pb-4">
@@ -164,6 +181,7 @@ export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
               stage={stage}
               deals={dealsByStage.get(stage) ?? []}
               onAddDeal={handleAddDeal}
+              onEditDeal={handleEditDeal}
             />
           ))}
         </div>
@@ -179,12 +197,13 @@ export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
 
       <DealForm
         open={formOpen}
-        onOpenChange={setFormOpen}
+        onOpenChange={handleFormClose}
         defaultStage={formStage}
-        onSubmit={handleCreateDeal}
-        isPending={createMutation.isPending}
+        onSubmit={handleFormSubmit}
+        isPending={createMutation.isPending || updateMutation.isPending}
         leads={leads}
         members={members}
+        editingDeal={editingDeal}
       />
     </div>
   );

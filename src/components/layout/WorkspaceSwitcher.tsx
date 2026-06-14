@@ -45,7 +45,7 @@ export function WorkspaceSwitcher({ workspaceSlug }: WorkspaceSwitcherProps) {
           className="w-full justify-between gap-2 px-2 h-10 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground text-xs font-bold">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-yellow-400 text-black text-xs font-bold">
               {initialOf(current.name)}
             </div>
             <span className="truncate text-sm font-medium text-yellow-400">{current.name}</span>

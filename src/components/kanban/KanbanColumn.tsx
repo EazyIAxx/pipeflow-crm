@@ -14,9 +14,10 @@ interface KanbanColumnProps {
   stage: Stage;
   deals: Deal[];
   onAddDeal: (stage: Stage) => void;
+  onEditDeal: (deal: Deal) => void;
 }
 
-export function KanbanColumn({ stage, deals, onAddDeal }: KanbanColumnProps) {
+export function KanbanColumn({ stage, deals, onAddDeal, onEditDeal }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: stage, data: { stage } });
 
   const total = deals.reduce((sum, deal) => sum + deal.value, 0);
@@ -47,7 +48,7 @@ export function KanbanColumn({ stage, deals, onAddDeal }: KanbanColumnProps) {
       >
         <SortableContext items={deals.map((deal) => deal.id)} strategy={verticalListSortingStrategy}>
           {deals.map((deal) => (
-            <DealCard key={deal.id} deal={deal} />
+            <DealCard key={deal.id} deal={deal} onEdit={() => onEditDeal(deal)} />
           ))}
         </SortableContext>
 

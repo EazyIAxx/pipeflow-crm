@@ -42,12 +42,12 @@ function NavItem({ href, label, icon: Icon, isActive }: NavItemProps) {
       <Icon
         className={cn(
           "h-4 w-4 shrink-0 transition-colors",
-          isActive ? "text-sidebar-primary" : "opacity-60 group-hover:opacity-100"
+          isActive ? "text-yellow-400" : "opacity-60 group-hover:opacity-100 group-hover:text-yellow-400"
         )}
       />
       <span className="flex-1">{label}</span>
       {isActive && (
-        <span className="h-1.5 w-1.5 rounded-full bg-sidebar-primary" />
+        <span className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
       )}
     </Link>
   );
