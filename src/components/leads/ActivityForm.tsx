@@ -24,7 +24,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ACTIVITY_TYPE_LABEL, type ActivityType } from "@/lib/mock/leads";
+
+type ActivityType = "CALL" | "EMAIL" | "MEETING" | "NOTE";
+
+const ACTIVITY_TYPE_LABEL: Record<ActivityType, string> = {
+  CALL: "Ligação",
+  EMAIL: "E-mail",
+  MEETING: "Reunião",
+  NOTE: "Nota",
+};
 
 const schema = z.object({
   type: z.enum(["CALL", "EMAIL", "MEETING", "NOTE"]),
@@ -44,16 +52,17 @@ interface ActivityFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: ActivityFormValues) => void;
+  isPending?: boolean;
 }
 
-export function ActivityForm({ open, onOpenChange, onSubmit }: ActivityFormProps) {
+export function ActivityForm({ open, onOpenChange, onSubmit, isPending }: ActivityFormProps) {
   const {
     register,
     handleSubmit,
     reset,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<ActivityFormValues>({
     resolver: zodResolver(schema),
     defaultValues: { type: "NOTE", description: "", date: nowForInput() },
@@ -65,10 +74,8 @@ export function ActivityForm({ open, onOpenChange, onSubmit }: ActivityFormProps
     }
   }, [open, reset]);
 
-  async function handleFormSubmit(values: ActivityFormValues) {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+  function handleFormSubmit(values: ActivityFormValues) {
     onSubmit(values);
-    onOpenChange(false);
   }
 
   const type = watch("type");
@@ -126,8 +133,8 @@ export function ActivityForm({ open, onOpenChange, onSubmit }: ActivityFormProps
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="gap-1.5">
-              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={isPending} className="gap-1.5">
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               Registrar atividade
             </Button>
           </DialogFooter>

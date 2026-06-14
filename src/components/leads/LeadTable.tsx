@@ -12,11 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LeadStatusBadge } from "@/components/leads/LeadStatusBadge";
-import type { MockLead } from "@/lib/mock/leads";
 
 const PAGE_SIZE = 8;
 
-function formatDate(value: string) {
+function formatDate(value: Date | string) {
   return new Date(value).toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -24,11 +23,20 @@ function formatDate(value: string) {
   });
 }
 
+interface Lead {
+  id: string;
+  name: string;
+  company: string | null;
+  email: string | null;
+  status: string;
+  createdAt: Date | string;
+}
+
 interface LeadTableProps {
-  leads: MockLead[];
+  leads: Lead[];
   workspaceSlug: string;
-  onEdit: (lead: MockLead) => void;
-  onDelete: (lead: MockLead) => void;
+  onEdit: (lead: Lead) => void;
+  onDelete: (lead: Lead) => void;
 }
 
 export function LeadTable({ leads, workspaceSlug, onEdit, onDelete }: LeadTableProps) {
@@ -60,7 +68,6 @@ export function LeadTable({ leads, workspaceSlug, onEdit, onDelete }: LeadTableP
               <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Empresa</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden lg:table-cell">E-mail</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden xl:table-cell">Responsável</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Data</th>
               <th className="px-4 py-3 text-right font-medium text-muted-foreground w-10" />
             </tr>
@@ -73,12 +80,11 @@ export function LeadTable({ leads, workspaceSlug, onEdit, onDelete }: LeadTableP
                 className={`border-b border-border last:border-0 hover:bg-muted/20 cursor-pointer transition-colors ${i % 2 === 0 ? "" : "bg-muted/5"}`}
               >
                 <td className="px-4 py-3 font-medium">{lead.name}</td>
-                <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{lead.company}</td>
-                <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">{lead.email}</td>
+                <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{lead.company ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">{lead.email ?? "—"}</td>
                 <td className="px-4 py-3">
                   <LeadStatusBadge status={lead.status} />
                 </td>
-                <td className="px-4 py-3 text-muted-foreground hidden xl:table-cell">{lead.owner}</td>
                 <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{formatDate(lead.createdAt)}</td>
                 <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>

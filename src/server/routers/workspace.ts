@@ -38,4 +38,27 @@ export const workspaceRouter = createTRPCRouter({
         role: membership.role,
       };
     }),
+
+  getMembers: protectedProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const membership = await ctx.db.workspaceMember.findFirst({
+        where: { userId: ctx.user.id, workspace: { slug: input.slug } },
+        include: { workspace: true },
+      });
+      if (!membership) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const members = await ctx.db.workspaceMember.findMany({
+        where: { workspaceId: membership.workspaceId },
+        include: { user: { select: { id: true, name: true, email: true } } },
+        orderBy: { joinedAt: "asc" },
+      });
+
+      return members.map((m) => ({
+        id: m.user.id,
+        name: m.user.name,
+        email: m.user.email,
+        role: m.role,
+      }));
+    }),
 });

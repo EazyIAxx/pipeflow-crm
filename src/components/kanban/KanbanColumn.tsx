@@ -7,30 +7,23 @@ import type { Stage } from "@prisma/client";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { DealCard } from "./DealCard";
-import {
-  formatCurrency,
-  STAGE_DOT_CLASS,
-  STAGE_LABEL,
-  type MockDeal,
-  type MockOwner,
-} from "./mock-data";
+import { DealCard, type Deal } from "./DealCard";
+import { formatCurrency, STAGE_DOT_CLASS, STAGE_LABEL } from "./mock-data";
 
 interface KanbanColumnProps {
   stage: Stage;
-  deals: MockDeal[];
-  ownersById: Map<string, MockOwner>;
+  deals: Deal[];
   onAddDeal: (stage: Stage) => void;
+  onEditDeal: (deal: Deal) => void;
 }
 
-export function KanbanColumn({ stage, deals, ownersById, onAddDeal }: KanbanColumnProps) {
+export function KanbanColumn({ stage, deals, onAddDeal, onEditDeal }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: stage, data: { stage } });
 
   const total = deals.reduce((sum, deal) => sum + deal.value, 0);
 
   return (
     <div className="flex w-[300px] shrink-0 flex-col gap-3">
-      {/* Column header */}
       <div className="flex items-center gap-2 px-1">
         <span className={cn("h-2 w-2 rounded-full", STAGE_DOT_CLASS[stage])} aria-hidden />
         <span className="font-pf-mono text-[11px] font-medium uppercase tracking-[0.15em] text-pf-text-secondary">
@@ -44,7 +37,6 @@ export function KanbanColumn({ stage, deals, ownersById, onAddDeal }: KanbanColu
         </span>
       </div>
 
-      {/* Drop zone */}
       <div
         ref={setNodeRef}
         className={cn(
@@ -56,7 +48,7 @@ export function KanbanColumn({ stage, deals, ownersById, onAddDeal }: KanbanColu
       >
         <SortableContext items={deals.map((deal) => deal.id)} strategy={verticalListSortingStrategy}>
           {deals.map((deal) => (
-            <DealCard key={deal.id} deal={deal} owner={ownersById.get(deal.ownerId)} />
+            <DealCard key={deal.id} deal={deal} onEdit={() => onEditDeal(deal)} />
           ))}
         </SortableContext>
 

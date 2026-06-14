@@ -26,12 +26,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import {
-  MOCK_OWNERS,
-  MOCK_PIPELINE_LEADS,
-  STAGE_LABEL,
-  STAGE_ORDER,
-} from "./mock-data";
+import { STAGE_LABEL, STAGE_ORDER } from "./mock-data";
+import type { Deal } from "./DealCard";
+
+export interface PipelineLead {
+  id: string;
+  name: string;
+  company: string | null;
+}
+
+export interface WorkspaceMember {
+  id: string;
+  name: string | null;
+  email: string;
+}
 
 const schema = z.object({
   title: z.string().min(2, "Informe um título para o negócio"),
@@ -52,45 +60,63 @@ export type DealFormValues = z.infer<typeof schema>;
 interface DealFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Stage the form should default to (e.g. column "+ Negócio" was clicked from). */
   defaultStage: Stage;
   onSubmit: (values: DealFormValues) => void;
+  isPending?: boolean;
+  leads: PipelineLead[];
+  members: WorkspaceMember[];
+  editingDeal?: Deal | null;
 }
 
-function buildDefaultValues(stage: Stage): DealFormValues {
+function buildDefaultValues(
+  stage: Stage,
+  leads: PipelineLead[],
+  members: WorkspaceMember[],
+  deal?: Deal | null,
+): DealFormValues {
+  if (deal) {
+    return {
+      title: deal.title,
+      value: deal.value > 0 ? String(deal.value) : "",
+      leadId: deal.leadId,
+      ownerId: deal.ownerId,
+      stage: deal.stage,
+      dueDate: deal.dueDate ?? "",
+    };
+  }
   return {
     title: "",
     value: "",
-    leadId: MOCK_PIPELINE_LEADS[0]?.id ?? "",
-    ownerId: MOCK_OWNERS[0]?.id ?? "",
+    leadId: leads[0]?.id ?? "",
+    ownerId: members[0]?.id ?? "",
     stage,
     dueDate: "",
   };
 }
 
-export function DealForm({ open, onOpenChange, defaultStage, onSubmit }: DealFormProps) {
+export function DealForm({ open, onOpenChange, defaultStage, onSubmit, isPending, leads, members, editingDeal }: DealFormProps) {
   const {
     register,
     handleSubmit,
     reset,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<DealFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: buildDefaultValues(defaultStage),
+    defaultValues: buildDefaultValues(defaultStage, leads, members),
   });
+
+  const isEditing = !!editingDeal;
 
   useEffect(() => {
     if (open) {
-      reset(buildDefaultValues(defaultStage));
+      reset(buildDefaultValues(defaultStage, leads, members, editingDeal));
     }
-  }, [open, defaultStage, reset]);
+  }, [open, defaultStage, leads, members, editingDeal, reset]);
 
-  async function handleFormSubmit(values: DealFormValues) {
-    await new Promise((resolve) => setTimeout(resolve, 350));
+  function handleFormSubmit(values: DealFormValues) {
     onSubmit(values);
-    onOpenChange(false);
   }
 
   const leadId = watch("leadId");
@@ -107,10 +133,12 @@ export function DealForm({ open, onOpenChange, defaultStage, onSubmit }: DealFor
       >
         <DialogHeader>
           <DialogTitle className="font-pf-display text-lg font-bold tracking-tight text-pf-text">
-            Novo negócio
+            {isEditing ? "Editar negócio" : "Novo negócio"}
           </DialogTitle>
           <DialogDescription className="text-pf-text-secondary">
-            Cadastre um negócio e posicione-o em uma etapa do funil.
+            {isEditing
+              ? "Atualize as informações do negócio."
+              : "Cadastre um negócio e posicione-o em uma etapa do funil."}
           </DialogDescription>
         </DialogHeader>
 
@@ -168,9 +196,9 @@ export function DealForm({ open, onOpenChange, defaultStage, onSubmit }: DealFor
                 <SelectValue placeholder="Selecione o lead" />
               </SelectTrigger>
               <SelectContent className="border-pf-border bg-pf-surface text-pf-text">
-                {MOCK_PIPELINE_LEADS.map((lead) => (
+                {leads.map((lead) => (
                   <SelectItem key={lead.id} value={lead.id}>
-                    {lead.name} — {lead.company}
+                    {lead.name}{lead.company ? ` — ${lead.company}` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -189,9 +217,9 @@ export function DealForm({ open, onOpenChange, defaultStage, onSubmit }: DealFor
                   <SelectValue placeholder="Selecione o responsável" />
                 </SelectTrigger>
                 <SelectContent className="border-pf-border bg-pf-surface text-pf-text">
-                  {MOCK_OWNERS.map((owner) => (
-                    <SelectItem key={owner.id} value={owner.id}>
-                      {owner.name}
+                  {members.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name ?? member.email}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -230,11 +258,11 @@ export function DealForm({ open, onOpenChange, defaultStage, onSubmit }: DealFor
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isPending || leads.length === 0}
               className="gap-1.5 rounded-[8px] bg-pf-accent font-pf-body font-medium text-pf-bg hover:bg-pf-accent/90"
             >
-              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              Criar negócio
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isEditing ? "Salvar alterações" : "Criar negócio"}
             </Button>
           </DialogFooter>
         </form>

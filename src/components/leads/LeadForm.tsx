@@ -24,16 +24,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { LEAD_OWNERS, LEAD_STATUS_LABEL, type MockLead } from "@/lib/mock/leads";
+
+const LEAD_STATUS_LABEL: Record<string, string> = {
+  active: "Ativo",
+  inactive: "Inativo",
+  converted: "Convertido",
+};
 
 const schema = z.object({
   name: z.string().min(2, "Nome deve ter ao menos 2 caracteres"),
-  email: z.string().email("E-mail inválido").or(z.literal("")),
+  email: z.string().email("E-mail inválido").or(z.literal("")).optional(),
   phone: z.string().optional(),
   company: z.string().min(1, "Informe a empresa"),
   jobTitle: z.string().optional(),
   status: z.enum(["active", "inactive", "converted"]),
-  owner: z.string().min(1, "Selecione um responsável"),
 });
 
 export type LeadFormValues = z.infer<typeof schema>;
@@ -45,17 +49,27 @@ const EMPTY_VALUES: LeadFormValues = {
   company: "",
   jobTitle: "",
   status: "active",
-  owner: LEAD_OWNERS[0],
 };
+
+interface LeadData {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  jobTitle: string | null;
+  status: string;
+}
 
 interface LeadFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  lead?: MockLead | null;
+  lead?: LeadData | null;
   onSubmit: (values: LeadFormValues) => void;
+  isPending?: boolean;
 }
 
-export function LeadForm({ open, onOpenChange, lead, onSubmit }: LeadFormProps) {
+export function LeadForm({ open, onOpenChange, lead, onSubmit, isPending }: LeadFormProps) {
   const isEditing = !!lead;
 
   const {
@@ -64,7 +78,7 @@ export function LeadForm({ open, onOpenChange, lead, onSubmit }: LeadFormProps) 
     reset,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LeadFormValues>({
     resolver: zodResolver(schema),
     defaultValues: EMPTY_VALUES,
@@ -76,26 +90,22 @@ export function LeadForm({ open, onOpenChange, lead, onSubmit }: LeadFormProps) 
         lead
           ? {
               name: lead.name,
-              email: lead.email,
-              phone: lead.phone,
-              company: lead.company,
-              jobTitle: lead.jobTitle,
-              status: lead.status,
-              owner: lead.owner,
+              email: lead.email ?? "",
+              phone: lead.phone ?? "",
+              company: lead.company ?? "",
+              jobTitle: lead.jobTitle ?? "",
+              status: (lead.status as LeadFormValues["status"]) ?? "active",
             }
-          : EMPTY_VALUES
+          : EMPTY_VALUES,
       );
     }
   }, [open, lead, reset]);
 
-  async function handleFormSubmit(values: LeadFormValues) {
-    await new Promise((resolve) => setTimeout(resolve, 400));
+  function handleFormSubmit(values: LeadFormValues) {
     onSubmit(values);
-    onOpenChange(false);
   }
 
   const status = watch("status");
-  const owner = watch("owner");
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -140,46 +150,33 @@ export function LeadForm({ open, onOpenChange, lead, onSubmit }: LeadFormProps) 
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label>Status</Label>
-              <Select value={status} onValueChange={(value) => setValue("status", value as LeadFormValues["status"], { shouldValidate: true })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(LEAD_STATUS_LABEL).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Responsável</Label>
-              <Select value={owner} onValueChange={(value) => setValue("owner", value, { shouldValidate: true })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o responsável" />
-                </SelectTrigger>
-                <SelectContent>
-                  {LEAD_OWNERS.map((name) => (
-                    <SelectItem key={name} value={name}>
-                      {name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-1.5">
+            <Label>Status</Label>
+            <Select
+              value={status}
+              onValueChange={(value) =>
+                setValue("status", value as LeadFormValues["status"], { shouldValidate: true })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o status" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(LEAD_STATUS_LABEL).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <SheetFooter className="mt-2 gap-2 sm:gap-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="gap-1.5">
-              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={isPending} className="gap-1.5">
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {isEditing ? "Salvar alterações" : "Criar lead"}
             </Button>
           </SheetFooter>

@@ -1,5 +1,12 @@
 import { cn } from "@/lib/utils";
-import { LEAD_STATUS_LABEL, type LeadStatus } from "@/lib/mock/leads";
+
+type LeadStatus = "active" | "inactive" | "converted";
+
+const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
+  active: "Ativo",
+  inactive: "Inativo",
+  converted: "Convertido",
+};
 
 const STATUS_CLASSNAME: Record<LeadStatus, string> = {
   active: "border-transparent bg-emerald-500/15 text-emerald-400",
@@ -8,20 +15,21 @@ const STATUS_CLASSNAME: Record<LeadStatus, string> = {
 };
 
 interface LeadStatusBadgeProps {
-  status: LeadStatus;
+  status: string;
   className?: string;
 }
 
 export function LeadStatusBadge({ status, className }: LeadStatusBadgeProps) {
+  const safeStatus = (status as LeadStatus) in STATUS_CLASSNAME ? (status as LeadStatus) : "inactive";
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors",
-        STATUS_CLASSNAME[status],
+        STATUS_CLASSNAME[safeStatus],
         className
       )}
     >
-      {LEAD_STATUS_LABEL[status]}
+      {LEAD_STATUS_LABEL[safeStatus] ?? status}
     </span>
   );
 }

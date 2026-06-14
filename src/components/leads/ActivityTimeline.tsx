@@ -2,7 +2,14 @@
 
 import { Phone, Mail, Users, StickyNote, History } from "lucide-react";
 
-import { ACTIVITY_TYPE_LABEL, type ActivityType, type MockActivity } from "@/lib/mock/leads";
+type ActivityType = "CALL" | "EMAIL" | "MEETING" | "NOTE";
+
+const ACTIVITY_TYPE_LABEL: Record<ActivityType, string> = {
+  CALL: "Ligação",
+  EMAIL: "E-mail",
+  MEETING: "Reunião",
+  NOTE: "Nota",
+};
 
 const ACTIVITY_ICON: Record<ActivityType, typeof Phone> = {
   CALL: Phone,
@@ -18,7 +25,7 @@ const ACTIVITY_ICON_CLASSNAME: Record<ActivityType, string> = {
   NOTE: "bg-muted text-muted-foreground",
 };
 
-function formatDateTime(value: string) {
+function formatDateTime(value: Date | string) {
   return new Date(value).toLocaleString("pt-BR", {
     day: "2-digit",
     month: "short",
@@ -28,8 +35,16 @@ function formatDateTime(value: string) {
   });
 }
 
+interface Activity {
+  id: string;
+  type: ActivityType;
+  description: string;
+  date: Date | string;
+  authorName: string;
+}
+
 interface ActivityTimelineProps {
-  activities: MockActivity[];
+  activities: Activity[];
 }
 
 export function ActivityTimeline({ activities }: ActivityTimelineProps) {
@@ -59,7 +74,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
             <div className={`flex flex-col gap-1 ${isLast ? "pb-0" : "pb-6"}`}>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold">{ACTIVITY_TYPE_LABEL[activity.type]}</span>
-                <span className="text-xs text-muted-foreground">· {activity.author}</span>
+                <span className="text-xs text-muted-foreground">· {activity.authorName}</span>
               </div>
               <p className="text-sm text-muted-foreground">{activity.description}</p>
               <span className="text-xs text-muted-foreground/70">{formatDateTime(activity.date)}</span>
