@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowRight, Loader2, Mail } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
@@ -28,6 +29,11 @@ const AUTH_ERRORS: Record<string, string> = {
 };
 
 export default function SignupPage() {
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next") ?? "/onboarding";
+  const emailHint = searchParams.get("email") ?? "";
+  const isInviteFlow = nextPath.startsWith("/invite/");
+
   const [serverError, setServerError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [confirmedEmail, setConfirmedEmail] = useState("");
@@ -36,7 +42,10 @@ export default function SignupPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: emailHint },
+  });
 
   async function onSubmit(data: FormValues) {
     setServerError(null);
@@ -52,7 +61,7 @@ export default function SignupPage() {
       password: data.password,
       options: {
         data: { full_name: data.name },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
       },
     });
 
@@ -73,14 +82,16 @@ export default function SignupPage() {
         </div>
 
         <h2 className="font-pf-display text-2xl font-bold tracking-tight text-pf-text">
-          Verifique seu Gmail
+          Verifique seu e-mail
         </h2>
 
         <p className="mt-3 font-pf-body text-sm leading-relaxed text-pf-text-secondary">
           Enviamos um link de ativação para{" "}
           <span className="font-semibold text-pf-accent">{confirmedEmail}</span>.
           <br />
-          Ao clicar no link você será redirecionado para criar seu workspace.
+          {isInviteFlow
+            ? "Ao clicar no link você será redirecionado para aceitar o convite."
+            : "Ao clicar no link você será redirecionado para criar seu workspace."}
         </p>
 
         <div className="mt-5 rounded-xl border border-pf-border-subtle bg-pf-bg px-4 py-3">
@@ -92,10 +103,10 @@ export default function SignupPage() {
         </div>
 
         <Link
-          href="/onboarding"
+          href={nextPath}
           className="mt-6 inline-flex items-center gap-1.5 font-pf-body text-sm font-semibold text-pf-accent transition-opacity hover:opacity-80"
         >
-          Já confirmei — criar meu workspace
+          {isInviteFlow ? "Já confirmei — aceitar o convite" : "Já confirmei — criar meu workspace"}
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
@@ -188,7 +199,10 @@ export default function SignupPage() {
 
       <p className="mt-6 text-center font-pf-body text-sm text-pf-text-muted">
         Já tem uma conta?{" "}
-        <Link href="/login" className="font-semibold text-pf-accent hover:underline">
+        <Link
+          href={nextPath !== "/onboarding" ? `/login?next=${encodeURIComponent(nextPath)}` : "/login"}
+          className="font-semibold text-pf-accent hover:underline"
+        >
           Entrar
         </Link>
       </p>

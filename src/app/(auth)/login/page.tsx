@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,13 +27,20 @@ const AUTH_ERRORS: Record<string, string> = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next");
+  const emailHint = searchParams.get("email") ?? "";
+  const isInviteFlow = nextPath?.startsWith("/invite/") ?? false;
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: emailHint },
+  });
 
   async function onSubmit(data: FormValues) {
     setServerError(null);
@@ -54,7 +61,7 @@ export default function LoginPage() {
       return;
     }
 
-    const redirectPath = await resolvePostLoginRedirect();
+    const redirectPath = nextPath ?? (await resolvePostLoginRedirect());
     router.push(redirectPath ?? "/onboarding");
     router.refresh();
   }
@@ -67,6 +74,16 @@ export default function LoginPage() {
       <p className="mt-1 font-pf-body text-sm text-pf-text-secondary">
         Use seu e-mail e senha para acessar o PipeFlow
       </p>
+
+      {isInviteFlow && emailHint && (
+        <div className="mt-5 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-3">
+          <p className="text-sm text-pf-text-secondary">
+            Entre com{" "}
+            <span className="font-semibold text-pf-text">{emailHint}</span>{" "}
+            para aceitar o convite.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-5" noValidate>
         {serverError && (
