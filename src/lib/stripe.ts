@@ -5,6 +5,26 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   typescript: true,
 });
 
+export async function getOrCreateCustomer({
+  existingCustomerId,
+  email,
+  name,
+  workspaceId,
+}: {
+  existingCustomerId?: string | null;
+  email: string;
+  name: string;
+  workspaceId: string;
+}): Promise<string> {
+  if (existingCustomerId) return existingCustomerId;
+  const customer = await stripe.customers.create({
+    email,
+    name,
+    metadata: { workspaceId },
+  });
+  return customer.id;
+}
+
 export async function createCheckoutSession({
   workspaceId,
   customerId,
@@ -13,7 +33,7 @@ export async function createCheckoutSession({
   cancelUrl,
 }: {
   workspaceId: string;
-  customerId?: string;
+  customerId: string;
   priceId: string;
   successUrl: string;
   cancelUrl: string;

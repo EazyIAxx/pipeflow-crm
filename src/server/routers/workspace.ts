@@ -58,6 +58,8 @@ export const workspaceRouter = createTRPCRouter({
         name: membership.workspace.name,
         slug: membership.workspace.slug,
         plan: membership.workspace.plan,
+        planExpiresAt: membership.workspace.planExpiresAt?.toISOString() ?? null,
+        hasActiveSubscription: !!membership.workspace.stripeSubId,
         role: membership.role,
         currentUserId: ctx.user.id,
       };

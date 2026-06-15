@@ -1,12 +1,10 @@
 "use client";
 
-import { CreditCard } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/lib/trpc/client";
 import { WorkspaceSettings } from "@/components/settings/WorkspaceSettings";
 import { MembersList } from "@/components/settings/MembersList";
+import { BillingCard } from "@/components/settings/BillingCard";
 
 interface SettingsPageProps {
   params: { workspaceSlug: string };
@@ -61,26 +59,22 @@ export default function SettingsPage({ params }: SettingsPageProps) {
         />
       )}
 
-      {/* Billing — placeholder M8 */}
-      <div className="rounded-lg border border-border bg-card p-5 flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <CreditCard className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-semibold">Plano</span>
-          <Badge className="ml-auto text-xs">
-            {workspace?.plan ?? "Free"}
-          </Badge>
+      {/* Billing */}
+      {isLoading ? (
+        <div className="rounded-lg border border-border bg-card p-5 flex flex-col gap-4">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-8 w-36" />
         </div>
-        <p className="text-sm text-muted-foreground">
-          {workspace?.plan === "PRO"
-            ? "Plano Pro ativo — colaboradores e leads ilimitados."
-            : "Plano Free — até 2 colaboradores e 50 leads."}
-        </p>
-        {workspace?.plan !== "PRO" && (
-          <Button size="sm" className="w-fit" disabled>
-            Fazer upgrade — em breve
-          </Button>
-        )}
-      </div>
+      ) : (
+        <BillingCard
+          workspaceSlug={workspaceSlug}
+          plan={workspace?.plan ?? "FREE"}
+          planExpiresAt={workspace?.planExpiresAt ?? null}
+          hasActiveSubscription={workspace?.hasActiveSubscription ?? false}
+          isAdmin={isAdmin}
+        />
+      )}
     </div>
   );
 }
