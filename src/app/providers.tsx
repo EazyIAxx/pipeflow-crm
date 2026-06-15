@@ -7,6 +7,7 @@ import superjson from "superjson";
 import { ThemeProvider } from "next-themes";
 import { trpc } from "@/lib/trpc/client";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return "";
@@ -42,7 +43,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+          <TooltipProvider delayDuration={300}>
+            {children}
+            <Toaster richColors position="bottom-right" />
+          </TooltipProvider>
         </QueryClientProvider>
       </trpc.Provider>
     </ThemeProvider>
