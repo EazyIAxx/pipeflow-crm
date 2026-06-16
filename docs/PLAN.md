@@ -126,7 +126,7 @@ prisma/
 | M5 | Pipeline Kanban | `feat/pipeline` | Board Kanban de negócios |
 | M6 | Dashboard | `feat/dashboard` | Métricas e gráfico de funil |
 | M7 | Workspace & Invites | `feat/workspace` | Multi-empresa e colaboração |
-| M8 | Monetização | `feat/billing` | Stripe + planos |
+| M8 | Monetização | `feat/billing` | Stripe + planos ✅ |
 | M9 | Polish & Deploy | `feat/polish` | Ajustes finais + Vercel |
 
 ---
@@ -377,28 +377,32 @@ prisma/
 
 ## M8 — Monetização
 
-**Branch:** `feat/billing`
+**Branch:** `feat/billing-nextjs` → merged em `main` (PR #11)
 **Objetivo:** Integração completa com Stripe — checkout de assinatura, webhook e portal do cliente.
 
 ### Entregas — Interface
 
-- [ ] `src/app/(app)/[workspaceSlug]/settings/billing/page.tsx` — página de billing
-- [ ] `src/components/settings/BillingCard.tsx` — plano atual, data de renovação, botão de ação
-- [ ] Card plano Free: lista de limites + botão "Fazer upgrade"
-- [ ] Card plano Pro: status ativo + botão "Gerenciar assinatura" (Customer Portal)
-- [ ] Banner de "limite atingido" no topo do app quando Free atingiu 50 leads ou 2 membros
-- [ ] Modal de upgrade ao tentar ultrapassar limite
+- [x] `src/app/(app)/[workspaceSlug]/settings/billing/page.tsx` — página de billing com tabs
+- [x] `src/components/settings/BillingCard.tsx` — plano atual, data de renovação, botão de ação
+- [x] Settings com tabs Workspace / Membros / Assinatura
+- [x] Card plano Free: lista de limites + botão "Fazer upgrade"
+- [x] Card plano Pro: status ativo + botão "Gerenciar assinatura" (Customer Portal)
+- [x] Comparação Free × Pro side-by-side com badge "Recomendado"
+- [x] Barras de uso (leads e membros) com alertas de limite atingido
+- [x] Cores globais: `yellow-400` → `pf-accent` em Sidebar, KanbanBoard, auth pages
 
 ### Entregas — Backend
 
-- [ ] `src/lib/stripe.ts` — cliente Stripe + helpers `createCheckoutSession`, `createPortalSession`
-- [ ] `src/server/routers/billing.ts`: `createCheckout`, `createPortalSession`, `getSubscription`
-- [ ] `src/app/api/webhooks/stripe/route.ts` — handler com validação de assinatura
-- [ ] Eventos processados: `checkout.session.completed` → ativa PRO; `customer.subscription.updated` → sync; `customer.subscription.deleted` → downgrade para FREE
-- [ ] Persistir `stripeCustomerId` e `plan` no `Workspace`
-- [ ] Limites de Free checados server-side em `leads.create` e `workspace.invite`
+- [x] `src/lib/stripe.ts` — cliente Stripe + helpers `getOrCreateCustomer`, `createCheckoutSession`, `createPortalSession` com metadata `workspace_id` / `user_id`
+- [x] `src/lib/limits.ts` — `canAddLead()` e `canAddMember()` + `FREE_LIMITS`
+- [x] `src/server/actions/billing.ts` — Server Actions `startCheckoutAction` + `openPortalAction`
+- [x] `src/app/api/webhooks/stripe/route.ts` — Route Handler com validação de assinatura
+- [x] Eventos: `checkout.session.completed` → PRO; `customer.subscription.deleted` → FREE; `invoice.payment_failed` → PAYMENT_FAILED
+- [x] `enum Plan` + `PAYMENT_FAILED` + migration `20260615000000_add_payment_failed_plan`
+- [x] `workspace.getLimits` — procedure tRPC com contagem de uso e flags `atLimit`
+- [x] Limites Free checados server-side via `canAddLead` / `canAddMember` em `leads.create` e `workspace.invite`
 
-**Commit final:** `feat: billing — Stripe checkout, webhooks, customer portal`
+**Commit final:** `feat: M8 monetização — Stripe webhook, billing page, limites Free, cores pf-accent`
 
 ---
 
