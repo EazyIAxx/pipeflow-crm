@@ -18,7 +18,7 @@ ALTER TABLE activities         ENABLE ROW LEVEL SECURITY;
 -- ============================================================
 CREATE POLICY "users: own row only"
   ON users FOR ALL
-  USING (auth.uid() = id);
+  USING (auth.uid()::text = id);
 
 -- ============================================================
 -- workspace_members  (pivot — needed first, other policies depend on it)
@@ -28,7 +28,7 @@ CREATE POLICY "workspace_members: members of same workspace"
   USING (
     workspace_id IN (
       SELECT workspace_id FROM workspace_members
-      WHERE user_id = auth.uid()
+      WHERE user_id = auth.uid()::text
     )
   );
 
@@ -40,7 +40,7 @@ CREATE POLICY "workspaces: members only"
   USING (
     id IN (
       SELECT workspace_id FROM workspace_members
-      WHERE user_id = auth.uid()
+      WHERE user_id = auth.uid()::text
     )
   );
 
@@ -52,7 +52,7 @@ CREATE POLICY "invites: workspace members only"
   USING (
     workspace_id IN (
       SELECT workspace_id FROM workspace_members
-      WHERE user_id = auth.uid()
+      WHERE user_id = auth.uid()::text
     )
   );
 
@@ -64,7 +64,7 @@ CREATE POLICY "leads: workspace members only"
   USING (
     workspace_id IN (
       SELECT workspace_id FROM workspace_members
-      WHERE user_id = auth.uid()
+      WHERE user_id = auth.uid()::text
     )
   );
 
@@ -76,7 +76,7 @@ CREATE POLICY "deals: workspace members only"
   USING (
     workspace_id IN (
       SELECT workspace_id FROM workspace_members
-      WHERE user_id = auth.uid()
+      WHERE user_id = auth.uid()::text
     )
   );
 
@@ -90,7 +90,7 @@ CREATE POLICY "activities: lead workspace members only"
       SELECT id FROM leads
       WHERE workspace_id IN (
         SELECT workspace_id FROM workspace_members
-        WHERE user_id = auth.uid()
+        WHERE user_id = auth.uid()::text
       )
     )
   );
