@@ -2,6 +2,15 @@ import { Resend } from "resend";
 
 export const resend = new Resend(process.env.RESEND_API_KEY!);
 
+function escHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // Sem domínio verificado no Resend, use "onboarding@resend.dev" (domínio de teste deles).
 // Com domínio próprio verificado, defina RESEND_FROM_EMAIL=Nome <voce@seudominio.com>
 const FROM = process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev";
@@ -20,7 +29,7 @@ export async function sendInviteEmail({
   return resend.emails.send({
     from: FROM,
     to,
-    subject: `${inviterName} convidou você para o workspace "${workspaceName}"`,
+    subject: `${escHtml(inviterName)} convidou você para o workspace "${escHtml(workspaceName)}"`,
     html: `<!DOCTYPE html>
 <html lang="pt-BR">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Convite PipeFlow</title></head>
@@ -55,10 +64,10 @@ export async function sendInviteEmail({
           <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 40px 32px;">
             <tr><td>
               <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:1px;">Convite para workspace</p>
-              <h1 style="margin:0 0 24px;font-size:26px;font-weight:700;color:#09090b;line-height:1.2;">${workspaceName}</h1>
+              <h1 style="margin:0 0 24px;font-size:26px;font-weight:700;color:#09090b;line-height:1.2;">${escHtml(workspaceName)}</h1>
               <p style="margin:0 0 24px;font-size:15px;color:#3f3f46;line-height:1.6;">
-                <strong style="color:#09090b;">${inviterName}</strong> convidou você para colaborar no workspace
-                <strong style="color:#09090b;">${workspaceName}</strong> no PipeFlow CRM.
+                <strong style="color:#09090b;">${escHtml(inviterName)}</strong> convidou você para colaborar no workspace
+                <strong style="color:#09090b;">${escHtml(workspaceName)}</strong> no PipeFlow CRM.
               </p>
 
               <!-- CTA button -->

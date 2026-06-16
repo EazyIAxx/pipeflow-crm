@@ -44,6 +44,29 @@ export async function POST(req: Request) {
         break;
       }
 
+      case "customer.subscription.updated": {
+        const sub = event.data.object as Stripe.Subscription;
+        const workspaceId = sub.metadata?.workspace_id;
+
+        if (!workspaceId) {
+          console.error("[stripe/webhook] subscription.updated: missing workspace_id in metadata");
+          break;
+        }
+
+        const isActive = sub.status === "active" || sub.status === "trialing";
+
+        await db.workspace.update({
+          where: { id: workspaceId },
+          data: {
+            plan: isActive ? "PRO" : "FREE",
+            stripeSubId: isActive ? sub.id : null,
+          },
+        });
+
+        console.log(`[stripe/webhook] subscription updated — workspace ${workspaceId} status: ${sub.status}`);
+        break;
+      }
+
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
         const workspaceId = sub.metadata?.workspace_id;

@@ -2,12 +2,12 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
-  // Se as env vars do Supabase não estiverem configuradas, deixa passar
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ) {
-    return NextResponse.next();
+    // Variáveis de ambiente ausentes em produção — falha segura, nunca expor rotas autenticadas
+    return new NextResponse("Service unavailable", { status: 503 });
   }
 
   let supabaseResponse = NextResponse.next({ request });
@@ -44,6 +44,7 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith("/login") &&
     !pathname.startsWith("/signup") &&
     !pathname.startsWith("/forgot-password") &&
+    !pathname.startsWith("/reset-password") &&
     !pathname.startsWith("/invite") &&
     !pathname.startsWith("/auth") &&
     !pathname.startsWith("/api") &&

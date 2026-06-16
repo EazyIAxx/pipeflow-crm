@@ -89,6 +89,11 @@ export const dealsRouter = createTRPCRouter({
       });
       if (!lead) throw new TRPCError({ code: "NOT_FOUND", message: "Lead não encontrado" });
 
+      const ownerMember = await ctx.db.workspaceMember.findFirst({
+        where: { workspaceId: member.workspaceId, userId: input.ownerId },
+      });
+      if (!ownerMember) throw new TRPCError({ code: "BAD_REQUEST", message: "Responsável não é membro deste workspace." });
+
       const deal = await ctx.db.deal.create({
         data: {
           workspaceId: member.workspaceId,
@@ -123,6 +128,11 @@ export const dealsRouter = createTRPCRouter({
         where: { id: input.dealId, workspaceId: member.workspaceId },
       });
       if (!deal) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const ownerMember = await ctx.db.workspaceMember.findFirst({
+        where: { workspaceId: member.workspaceId, userId: input.ownerId },
+      });
+      if (!ownerMember) throw new TRPCError({ code: "BAD_REQUEST", message: "Responsável não é membro deste workspace." });
 
       const updated = await ctx.db.deal.update({
         where: { id: input.dealId },
