@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { Syne, DM_Sans, IBM_Plex_Mono } from "next/font/google";
 
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
+
+export const metadata: Metadata = {
+  title: "Pipeline — PipeFlow CRM",
+  description: "Board Kanban de negócios com drag-and-drop entre as etapas do funil de vendas.",
+};
 
 const pfDisplay = Syne({
   subsets: ["latin"],

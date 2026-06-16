@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, UserPlus } from "lucide-react";
 import { Role } from "@prisma/client";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +43,6 @@ interface InviteMemberDialogProps {
 export function InviteMemberDialog({ workspaceSlug, onSuccess, disabled }: InviteMemberDialogProps) {
   const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -53,13 +53,10 @@ export function InviteMemberDialog({ workspaceSlug, onSuccess, disabled }: Invit
 
   const inviteMutation = trpc.workspace.invite.useMutation({
     onSuccess: () => {
-      setSent(true);
       reset();
       onSuccess();
-      setTimeout(() => {
-        setSent(false);
-        setOpen(false);
-      }, 2000);
+      setOpen(false);
+      toast.success("Convite enviado com sucesso!");
     },
     onError: (err) => {
       setServerError(err.message);
@@ -76,7 +73,6 @@ export function InviteMemberDialog({ workspaceSlug, onSuccess, disabled }: Invit
     if (!next) {
       reset();
       setServerError(null);
-      setSent(false);
     }
   }
 
@@ -97,12 +93,7 @@ export function InviteMemberDialog({ workspaceSlug, onSuccess, disabled }: Invit
           </DialogDescription>
         </DialogHeader>
 
-        {sent ? (
-          <div className="py-4 text-center text-sm text-green-600 dark:text-green-400 font-medium">
-            Convite enviado com sucesso!
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-1">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-1">
             <div className="space-y-1.5">
               <Label htmlFor="invite-email">E-mail</Label>
               <Input
@@ -148,7 +139,6 @@ export function InviteMemberDialog({ workspaceSlug, onSuccess, disabled }: Invit
               </Button>
             </DialogFooter>
           </form>
-        )}
       </DialogContent>
     </Dialog>
   );

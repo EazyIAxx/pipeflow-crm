@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Settings } from "lucide-react";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,6 @@ interface WorkspaceSettingsProps {
 
 export function WorkspaceSettings({ workspaceSlug, initialName, isAdmin }: WorkspaceSettingsProps) {
   const utils = trpc.useUtils();
-  const [saved, setSaved] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors, isDirty } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -38,9 +38,9 @@ export function WorkspaceSettings({ workspaceSlug, initialName, isAdmin }: Works
     onSuccess: () => {
       utils.workspace.list.invalidate();
       utils.workspace.getBySlug.invalidate({ slug: workspaceSlug });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      toast.success("Workspace atualizado!");
     },
+    onError: (err) => toast.error(err.message ?? "Erro ao atualizar workspace."),
   });
 
   function onSubmit(values: FormValues) {
@@ -86,14 +86,6 @@ export function WorkspaceSettings({ workspaceSlug, initialName, isAdmin }: Works
               {updateMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
               Salvar
             </Button>
-            {saved && (
-              <span className="text-xs text-green-600 dark:text-green-400">Salvo!</span>
-            )}
-            {updateMutation.isError && (
-              <span className="text-xs text-destructive">
-                {updateMutation.error.message}
-              </span>
-            )}
           </div>
         )}
       </form>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Plus } from "lucide-react";
 
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,7 +50,9 @@ export default function LeadsPage() {
     onSuccess: () => {
       utils.leads.list.invalidate({ workspaceSlug });
       setFormOpen(false);
+      toast.success("Lead criado com sucesso.");
     },
+    onError: (err) => toast.error(err.message ?? "Erro ao criar lead."),
   });
 
   const updateMutation = trpc.leads.update.useMutation({
@@ -57,14 +60,18 @@ export default function LeadsPage() {
       utils.leads.list.invalidate({ workspaceSlug });
       setFormOpen(false);
       setEditingLeadId(null);
+      toast.success("Lead atualizado com sucesso.");
     },
+    onError: (err) => toast.error(err.message ?? "Erro ao atualizar lead."),
   });
 
   const deleteMutation = trpc.leads.delete.useMutation({
     onSuccess: () => {
       utils.leads.list.invalidate({ workspaceSlug });
       setDeletingLeadId(null);
+      toast.success("Lead excluído.");
     },
+    onError: (err) => toast.error(err.message ?? "Erro ao excluir lead."),
   });
 
   const editingLead = editingLeadId ? (leads.find((l) => l.id === editingLeadId) ?? null) : null;

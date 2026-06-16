@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Plus } from "lucide-react";
 
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,20 +40,26 @@ export default function LeadDetailPage() {
       utils.leads.getById.invalidate({ workspaceSlug, leadId });
       utils.leads.list.invalidate({ workspaceSlug });
       setEditOpen(false);
+      toast.success("Lead atualizado com sucesso.");
     },
+    onError: (err) => toast.error(err.message ?? "Erro ao atualizar lead."),
   });
 
   const deleteMutation = trpc.leads.delete.useMutation({
     onSuccess: () => {
+      toast.success("Lead excluído.");
       router.push(`/${workspaceSlug}/leads`);
     },
+    onError: (err) => toast.error(err.message ?? "Erro ao excluir lead."),
   });
 
   const createActivityMutation = trpc.activities.create.useMutation({
     onSuccess: () => {
       utils.activities.listByLead.invalidate({ workspaceSlug, leadId });
       setActivityFormOpen(false);
+      toast.success("Atividade registrada.");
     },
+    onError: (err) => toast.error(err.message ?? "Erro ao registrar atividade."),
   });
 
   function handleEditSubmit(values: LeadFormValues) {

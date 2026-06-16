@@ -12,8 +12,10 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import type { Stage } from "@prisma/client";
+import { toast } from "sonner";
 
 import { trpc } from "@/lib/trpc/client";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DealCard, type Deal } from "./DealCard";
 import { KanbanColumn } from "./KanbanColumn";
 import { DealForm, type DealFormValues } from "./DealForm";
@@ -26,7 +28,7 @@ interface KanbanBoardProps {
 export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
   const utils = trpc.useUtils();
 
-  const { data: deals = [] } = trpc.deals.listByWorkspace.useQuery({ workspaceSlug });
+  const { data: deals = [], isLoading: dealsLoading } = trpc.deals.listByWorkspace.useQuery({ workspaceSlug });
   const { data: leads = [] } = trpc.leads.list.useQuery({ workspaceSlug });
   const { data: members = [] } = trpc.workspace.getMembers.useQuery({ slug: workspaceSlug });
 
@@ -39,7 +41,9 @@ export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
     onSuccess: () => {
       utils.deals.listByWorkspace.invalidate({ workspaceSlug });
       setFormOpen(false);
+      toast.success("Negócio criado com sucesso.");
     },
+    onError: (err) => toast.error(err.message ?? "Erro ao criar negócio."),
   });
 
   const updateMutation = trpc.deals.update.useMutation({
@@ -47,7 +51,9 @@ export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
       utils.deals.listByWorkspace.invalidate({ workspaceSlug });
       setFormOpen(false);
       setEditingDeal(null);
+      toast.success("Negócio atualizado com sucesso.");
     },
+    onError: (err) => toast.error(err.message ?? "Erro ao atualizar negócio."),
   });
 
   const updateStageMutation = trpc.deals.updateStage.useMutation({
@@ -149,14 +155,40 @@ export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
     }
   }
 
+  if (dealsLoading) {
+    return (
+      <div className="pf-bg min-h-[calc(100vh-8rem)] rounded-2xl border border-pf-border-subtle bg-pf-bg p-6 font-pf-body text-pf-text">
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-7 w-28" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-9 w-32 shrink-0" />
+        </div>
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex w-[300px] shrink-0 flex-col gap-3">
+              <Skeleton className="h-5 w-32" />
+              <div className="flex flex-col gap-2 rounded-xl border border-pf-border-subtle bg-pf-surface-2/40 p-2 min-h-[160px]">
+                {i < 3 && <Skeleton className="h-[88px] w-full rounded-lg" />}
+                {i === 0 && <Skeleton className="h-[88px] w-full rounded-lg" />}
+              </div>
+              <Skeleton className="h-9 w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pf-bg min-h-[calc(100vh-8rem)] rounded-2xl border border-pf-border-subtle bg-pf-bg p-6 font-pf-body text-pf-text">
-      <header className="mb-6 flex items-start justify-between gap-4">
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h2 className="font-pf-display text-2xl font-bold tracking-tight text-pf-text">
             Pipeline
           </h2>
-          <p className="font-pf-body text-sm text-pf-text-secondary">
+          <p className="font-pf-body text-sm text-pf-text-secondary hidden sm:block">
             Arraste os negócios entre as etapas do funil para atualizar o estágio.
           </p>
         </div>

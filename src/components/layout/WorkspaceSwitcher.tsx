@@ -78,9 +78,11 @@ export function WorkspaceSwitcher({ workspaceSlug }: WorkspaceSwitcherProps) {
         ))}
 
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 cursor-default text-muted-foreground" disabled>
-          <Plus className="h-4 w-4" />
-          <span className="text-sm">Novo workspace</span>
+        <DropdownMenuItem asChild className="gap-2 cursor-pointer">
+          <Link href="/onboarding">
+            <Plus className="h-4 w-4" />
+            <span className="text-sm">Novo workspace</span>
+          </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

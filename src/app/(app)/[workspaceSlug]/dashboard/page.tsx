@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { CalendarClock, DollarSign, Target, TrendingUp, Users } from "lucide-react";
 import { createServerCaller } from "@/lib/trpc/server";
+
+export const metadata: Metadata = {
+  title: "Dashboard — PipeFlow CRM",
+  description: "Visão geral do pipeline de vendas: KPIs, funil por etapa e negócios com prazo próximo.",
+};
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
