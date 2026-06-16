@@ -29,7 +29,7 @@ function getInitials(name: string | null, email: string): string {
 function RoleBadge({ role }: { role: Role }) {
   if (role === "ADMIN") {
     return (
-      <Badge className="gap-1 bg-yellow-400/20 text-yellow-700 dark:text-yellow-300 border-yellow-400/30 hover:bg-yellow-400/20">
+      <Badge className="gap-1 bg-pf-accent/20 text-[#5C7500] dark:text-pf-accent border-pf-accent/30 hover:bg-pf-accent/20">
         <Shield className="h-3 w-3" />
         Admin
       </Badge>
@@ -46,7 +46,7 @@ interface MembersListProps {
   workspaceSlug: string;
   currentUserId: string;
   isAdmin: boolean;
-  plan: "FREE" | "PRO";
+  plan: "FREE" | "PRO" | "PAYMENT_FAILED";
 }
 
 export function MembersList({ workspaceSlug, currentUserId, isAdmin, plan }: MembersListProps) {

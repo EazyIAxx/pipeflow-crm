@@ -100,7 +100,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
     <div className="flex flex-col gap-6">
       {/* Workspace card */}
       <div className="rounded-xl border border-pf-border bg-pf-surface p-6 flex flex-col items-center gap-3 text-center">
-        <div className="h-14 w-14 rounded-2xl bg-yellow-400 flex items-center justify-center text-black font-bold text-xl">
+        <div className="h-14 w-14 rounded-2xl bg-pf-accent flex items-center justify-center text-pf-bg font-bold text-xl">
           {getInitials(invite.workspace.name)}
         </div>
         <div>
@@ -125,7 +125,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
         // Not logged in OR wrong account → prompt login/signup
         <div className="flex flex-col gap-3">
           {user && (
-            <div className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-3 text-sm text-center">
+            <div className="rounded-xl border border-pf-accent/30 bg-pf-accent/10 px-4 py-3 text-sm text-center">
               <p className="text-pf-text-secondary">
                 Este convite é para{" "}
                 <span className="font-semibold text-pf-text">{invite.email}</span>
@@ -146,7 +146,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
                 ? `/api/auth/switch?next=/invite/${token}&email=${encodeURIComponent(invite.email)}`
                 : `/login?next=/invite/${token}&email=${encodeURIComponent(invite.email)}`
             }
-            className="w-full rounded-xl bg-yellow-400 py-3 font-pf-body font-semibold text-black text-sm text-center transition-opacity hover:opacity-90 block"
+            className="w-full rounded-xl bg-pf-accent py-3 font-pf-body font-semibold text-pf-bg text-sm text-center transition-opacity hover:opacity-90 block"
           >
             {user ? `Entrar como ${invite.email}` : "Fazer login para aceitar"}
           </Link>

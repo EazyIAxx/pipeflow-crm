@@ -1,8 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/trpc";
-
-const FREE_LEAD_LIMIT = 50;
+import { canAddLead, FREE_LIMITS } from "@/lib/limits";
 
 async function resolveMembership(
   ctx: { db: typeof import("@/server/db").db; user: { id: string } },
@@ -70,16 +69,12 @@ export const leadsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const member = await resolveMembership(ctx, input.workspaceSlug);
 
-      if (member.workspace.plan === "FREE") {
-        const count = await ctx.db.lead.count({
-          where: { workspaceId: member.workspaceId },
+      const allowed = await canAddLead(ctx.db, member.workspaceId, member.workspace.plan);
+      if (!allowed) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Plano Free permite no máximo ${FREE_LIMITS.leads} leads. Faça upgrade para o plano Pro.`,
         });
-        if (count >= FREE_LEAD_LIMIT) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: `Plano Free permite no máximo ${FREE_LEAD_LIMIT} leads. Faça upgrade para o plano Pro.`,
-          });
-        }
       }
 
       return ctx.db.lead.create({

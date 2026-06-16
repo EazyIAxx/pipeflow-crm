@@ -5,15 +5,39 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   typescript: true,
 });
 
+export async function getOrCreateCustomer({
+  existingCustomerId,
+  email,
+  name,
+  workspaceId,
+  userId,
+}: {
+  existingCustomerId?: string | null;
+  email: string;
+  name: string;
+  workspaceId: string;
+  userId: string;
+}): Promise<string> {
+  if (existingCustomerId) return existingCustomerId;
+  const customer = await stripe.customers.create({
+    email,
+    name,
+    metadata: { workspace_id: workspaceId, user_id: userId },
+  });
+  return customer.id;
+}
+
 export async function createCheckoutSession({
   workspaceId,
+  userId,
   customerId,
   priceId,
   successUrl,
   cancelUrl,
 }: {
   workspaceId: string;
-  customerId?: string;
+  userId: string;
+  customerId: string;
   priceId: string;
   successUrl: string;
   cancelUrl: string;
@@ -24,8 +48,8 @@ export async function createCheckoutSession({
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: successUrl,
     cancel_url: cancelUrl,
-    metadata: { workspaceId },
-    subscription_data: { metadata: { workspaceId } },
+    metadata: { workspace_id: workspaceId, user_id: userId },
+    subscription_data: { metadata: { workspace_id: workspaceId, user_id: userId } },
   });
 }
 

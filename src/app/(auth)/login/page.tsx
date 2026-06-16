@@ -76,7 +76,7 @@ export default function LoginPage() {
       </p>
 
       {isInviteFlow && emailHint && (
-        <div className="mt-5 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-3">
+        <div className="mt-5 rounded-xl border border-pf-accent/30 bg-pf-accent/10 px-4 py-3">
           <p className="text-sm text-pf-text-secondary">
             Entre com{" "}
             <span className="font-semibold text-pf-text">{emailHint}</span>{" "}

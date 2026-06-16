@@ -42,12 +42,12 @@ function NavItem({ href, label, icon: Icon, isActive }: NavItemProps) {
       <Icon
         className={cn(
           "h-4 w-4 shrink-0 transition-colors",
-          isActive ? "text-yellow-400" : "opacity-60 group-hover:opacity-100 group-hover:text-yellow-400"
+          isActive ? "text-pf-accent" : "opacity-60 group-hover:opacity-100 group-hover:text-pf-accent"
         )}
       />
       <span className="flex-1">{label}</span>
       {isActive && (
-        <span className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
+        <span className="h-1.5 w-1.5 rounded-full bg-pf-accent" />
       )}
     </Link>
   );
@@ -65,10 +65,10 @@ export function SidebarContent({ workspaceSlug }: SidebarContentProps) {
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-400 shadow-sm">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-pf-accent shadow-sm">
           <Zap className="h-4 w-4 text-black" />
         </div>
-        <span className="font-bold text-[15px] tracking-tight text-yellow-400">
+        <span className="font-bold text-[15px] tracking-tight text-pf-accent">
           PipeFlow
         </span>
       </div>

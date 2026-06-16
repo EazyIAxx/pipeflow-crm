@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Role } from "@prisma/client";
 import { createTRPCRouter, protectedProcedure } from "@/server/trpc";
 import { sendInviteEmail } from "@/lib/email";
+import { canAddMember, FREE_LIMITS } from "@/lib/limits";
 
 async function resolveMembership(
   ctx: { db: typeof import("@/server/db").db; user: { id: string } },
@@ -58,8 +59,41 @@ export const workspaceRouter = createTRPCRouter({
         name: membership.workspace.name,
         slug: membership.workspace.slug,
         plan: membership.workspace.plan,
+        planExpiresAt: membership.workspace.planExpiresAt?.toISOString() ?? null,
+        hasActiveSubscription: !!membership.workspace.stripeSubId,
         role: membership.role,
         currentUserId: ctx.user.id,
+      };
+    }),
+
+  getLimits: protectedProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const membership = await ctx.db.workspaceMember.findFirst({
+        where: { userId: ctx.user.id, workspace: { slug: input.slug } },
+        include: { workspace: true },
+      });
+      if (!membership) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const [leadCount, memberCount] = await Promise.all([
+        ctx.db.lead.count({ where: { workspaceId: membership.workspaceId } }),
+        ctx.db.workspaceMember.count({ where: { workspaceId: membership.workspaceId } }),
+      ]);
+
+      const isFree = membership.workspace.plan === "FREE";
+
+      return {
+        plan: membership.workspace.plan,
+        leads: {
+          current: leadCount,
+          max: FREE_LIMITS.leads,
+          atLimit: isFree && leadCount >= FREE_LIMITS.leads,
+        },
+        members: {
+          current: memberCount,
+          max: FREE_LIMITS.members,
+          atLimit: isFree && memberCount >= FREE_LIMITS.members,
+        },
       };
     }),
 
@@ -106,18 +140,12 @@ export const workspaceRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const member = await resolveAdminMembership(ctx, input.workspaceSlug);
 
-      // Free plan: max 2 members total (existing + pending accepted)
-      if (member.workspace.plan === "FREE") {
-        const memberCount = await ctx.db.workspaceMember.count({
-          where: { workspaceId: member.workspaceId },
+      const allowed = await canAddMember(ctx.db, member.workspaceId, member.workspace.plan);
+      if (!allowed) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `O plano Free permite no máximo ${FREE_LIMITS.members} colaboradores. Faça upgrade para convidar mais pessoas.`,
         });
-        if (memberCount >= 2) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message:
-              "O plano Free permite no máximo 2 colaboradores. Faça upgrade para convidar mais pessoas.",
-          });
-        }
       }
 
       const emailLower = input.email.toLowerCase();
