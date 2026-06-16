@@ -23,11 +23,14 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const workspaceId = session.metadata?.workspaceId;
+        const workspaceId = session.metadata?.workspace_id;
+        const userId = session.metadata?.user_id;
+
         if (!workspaceId) {
-          console.error("[stripe/webhook] checkout.session.completed: missing workspaceId in metadata");
+          console.error("[stripe/webhook] checkout.session.completed: missing workspace_id in metadata");
           break;
         }
+
         await db.workspace.update({
           where: { id: workspaceId },
           data: {
@@ -36,37 +39,20 @@ export async function POST(req: Request) {
             stripeSubId: session.subscription as string,
           },
         });
-        console.log(`[stripe/webhook] workspace ${workspaceId} upgraded to PRO`);
-        break;
-      }
 
-      case "customer.subscription.updated": {
-        const sub = event.data.object as Stripe.Subscription;
-        const workspaceId = sub.metadata?.workspaceId;
-        if (!workspaceId) {
-          console.error("[stripe/webhook] subscription.updated: missing workspaceId in metadata");
-          break;
-        }
-        const isActive = sub.status === "active" || sub.status === "trialing";
-        await db.workspace.update({
-          where: { id: workspaceId },
-          data: {
-            plan: isActive ? "PRO" : "FREE",
-            stripeSubId: sub.id,
-            planExpiresAt: new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000),
-          },
-        });
-        console.log(`[stripe/webhook] workspace ${workspaceId} subscription updated — status: ${sub.status}`);
+        console.log(`[stripe/webhook] workspace ${workspaceId} upgraded to PRO (user: ${userId})`);
         break;
       }
 
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        const workspaceId = sub.metadata?.workspaceId;
+        const workspaceId = sub.metadata?.workspace_id;
+
         if (!workspaceId) {
-          console.error("[stripe/webhook] subscription.deleted: missing workspaceId in metadata");
+          console.error("[stripe/webhook] subscription.deleted: missing workspace_id in metadata");
           break;
         }
+
         await db.workspace.update({
           where: { id: workspaceId },
           data: {
@@ -75,16 +61,41 @@ export async function POST(req: Request) {
             planExpiresAt: null,
           },
         });
+
         console.log(`[stripe/webhook] workspace ${workspaceId} downgraded to FREE`);
         break;
       }
 
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+
+        const workspace = await db.workspace.findFirst({
+          where: { stripeCustomerId: customerId },
+          select: { id: true, name: true },
+        });
+
+        if (!workspace) {
+          console.warn(`[stripe/webhook] invoice.payment_failed: no workspace found for customer ${customerId}`);
+          break;
+        }
+
+        await db.workspace.update({
+          where: { id: workspace.id },
+          data: { plan: "PAYMENT_FAILED" },
+        });
+
+        console.warn(
+          `[stripe/webhook] Payment failed — workspace "${workspace.name}" (${workspace.id}) marked as PAYMENT_FAILED`,
+        );
+        break;
+      }
+
       default:
-        // Silently ignore unhandled events
         break;
     }
   } catch (err) {
-    console.error(`[stripe/webhook] Error processing event ${event.type}:`, err);
+    console.error(`[stripe/webhook] Error processing ${event.type}:`, err);
     return NextResponse.json({ error: "Handler error" }, { status: 500 });
   }
 

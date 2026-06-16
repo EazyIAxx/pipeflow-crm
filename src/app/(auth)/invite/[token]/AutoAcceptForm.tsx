@@ -31,7 +31,7 @@ export function AutoAcceptForm({ action, userEmail }: AutoAcceptFormProps) {
       >
         <button
           type="submit"
-          className="w-full rounded-xl bg-yellow-400 py-3 font-pf-body font-semibold text-black text-sm transition-opacity hover:opacity-90 active:opacity-75 flex items-center justify-center gap-2"
+          className="w-full rounded-xl bg-pf-accent py-3 font-pf-body font-semibold text-pf-bg text-sm transition-opacity hover:opacity-90 active:opacity-75 flex items-center justify-center gap-2"
         >
           <Loader2 className="h-4 w-4 animate-spin" />
           Entrando no workspace…

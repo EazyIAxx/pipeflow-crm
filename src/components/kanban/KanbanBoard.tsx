@@ -162,7 +162,7 @@ export function KanbanBoard({ workspaceSlug }: KanbanBoardProps) {
         </div>
         <button
           onClick={() => handleAddDeal("NEW_LEAD")}
-          className="shrink-0 rounded-lg bg-yellow-400 px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90 active:opacity-75"
+          className="shrink-0 rounded-lg bg-pf-accent px-4 py-2 text-sm font-semibold text-pf-bg transition-opacity hover:opacity-90 active:opacity-75"
         >
           + Novo Negócio
         </button>

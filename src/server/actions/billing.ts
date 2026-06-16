@@ -16,15 +16,15 @@ async function resolveAdminWorkspace(workspaceSlug: string) {
     where: { userId: user.id, workspace: { slug: workspaceSlug }, role: "ADMIN" },
     include: {
       workspace: true,
-      user: { select: { email: true, name: true } },
+      user: { select: { id: true, email: true, name: true } },
     },
   });
   if (!member) redirect(`/${workspaceSlug}/settings`);
-  return member;
+  return { member, userId: user.id };
 }
 
 export async function startCheckoutAction(workspaceSlug: string) {
-  const member = await resolveAdminWorkspace(workspaceSlug);
+  const { member, userId } = await resolveAdminWorkspace(workspaceSlug);
   const { workspace } = member;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
@@ -33,6 +33,7 @@ export async function startCheckoutAction(workspaceSlug: string) {
     email: member.user.email,
     name: workspace.name,
     workspaceId: workspace.id,
+    userId,
   });
 
   if (!workspace.stripeCustomerId) {
@@ -44,6 +45,7 @@ export async function startCheckoutAction(workspaceSlug: string) {
 
   const session = await createCheckoutSession({
     workspaceId: workspace.id,
+    userId,
     customerId,
     priceId: process.env.STRIPE_PRO_PRICE_ID!,
     successUrl: `${appUrl}/${workspaceSlug}/settings?upgrade=success`,
@@ -54,7 +56,7 @@ export async function startCheckoutAction(workspaceSlug: string) {
 }
 
 export async function openPortalAction(workspaceSlug: string) {
-  const member = await resolveAdminWorkspace(workspaceSlug);
+  const { member } = await resolveAdminWorkspace(workspaceSlug);
   const { workspace } = member;
 
   if (!workspace.stripeCustomerId) {

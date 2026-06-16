@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { CreditCard, Zap, CheckCircle2, Loader2, ExternalLink } from "lucide-react";
+import { CreditCard, Zap, CheckCircle2, Loader2, ExternalLink, AlertTriangle, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { startCheckoutAction, openPortalAction } from "@/server/actions/billing";
@@ -9,7 +9,17 @@ import { startCheckoutAction, openPortalAction } from "@/server/actions/billing"
 function SubmitButton({ children, variant = "default" }: { children: React.ReactNode; variant?: "default" | "outline" }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="sm" variant={variant} disabled={pending} className="w-fit gap-2">
+    <Button
+      type="submit"
+      size="sm"
+      variant={variant}
+      disabled={pending}
+      className={
+        variant === "default"
+          ? "w-fit gap-2 bg-pf-accent text-pf-bg hover:bg-pf-accent/90 font-semibold"
+          : "w-fit gap-2"
+      }
+    >
       {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
       {children}
     </Button>
@@ -23,14 +33,14 @@ const PRO_FEATURES = [
   "Suporte prioritário",
 ];
 
-const FREE_LIMITS = [
+const FREE_LIMITS_LIST = [
   "Até 2 colaboradores",
   "Até 50 leads",
 ];
 
 interface BillingCardProps {
   workspaceSlug: string;
-  plan: "FREE" | "PRO";
+  plan: "FREE" | "PRO" | "PAYMENT_FAILED";
   planExpiresAt: string | null;
   hasActiveSubscription: boolean;
   isAdmin: boolean;
@@ -44,6 +54,7 @@ export function BillingCard({
   isAdmin,
 }: BillingCardProps) {
   const isPro = plan === "PRO";
+  const isPaymentFailed = plan === "PAYMENT_FAILED";
   const renewalDate = planExpiresAt
     ? new Date(planExpiresAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
     : null;
@@ -60,15 +71,22 @@ export function BillingCard({
         <Badge
           className={`ml-auto text-xs ${
             isPro
-              ? "bg-yellow-400/20 text-yellow-700 dark:text-yellow-300 border-yellow-400/30 hover:bg-yellow-400/20"
-              : "bg-muted text-muted-foreground hover:bg-muted"
+              ? "bg-pf-accent/20 text-[#5C7500] dark:text-pf-accent border-pf-accent/30 hover:bg-pf-accent/20"
+              : isPaymentFailed
+                ? "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30 hover:bg-red-500/10"
+                : "bg-muted text-muted-foreground hover:bg-muted"
           }`}
           variant="outline"
         >
           {isPro ? (
             <span className="flex items-center gap-1">
-              <Zap className="h-3 w-3" />
+              <Zap className="h-3 w-3 text-pf-accent" />
               Pro
+            </span>
+          ) : isPaymentFailed ? (
+            <span className="flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              Pagamento falhou
             </span>
           ) : (
             "Free"
@@ -76,12 +94,23 @@ export function BillingCard({
         </Badge>
       </div>
 
+      {isPaymentFailed && (
+        <div className="flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/5 p-3 text-sm">
+          <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+          <div className="flex flex-col gap-0.5">
+            <span className="font-medium text-red-600 dark:text-red-400">Falha no pagamento</span>
+            <span className="text-muted-foreground text-xs">
+              Não conseguimos processar sua assinatura. Atualize seu método de pagamento para reativar o Pro.
+            </span>
+          </div>
+        </div>
+      )}
+
       {isPro ? (
         <>
-          {/* Pro state */}
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <div className="flex items-center gap-2 text-sm text-pf-positive">
+              <ShieldCheck className="h-4 w-4 shrink-0" />
               <span>Plano Pro ativo — colaboradores e leads ilimitados.</span>
             </div>
             {renewalDate && (
@@ -94,7 +123,7 @@ export function BillingCard({
           <ul className="flex flex-col gap-1.5">
             {PRO_FEATURES.map((f) => (
               <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-pf-positive shrink-0" />
                 {f}
               </li>
             ))}
@@ -111,13 +140,12 @@ export function BillingCard({
         </>
       ) : (
         <>
-          {/* Free state */}
           <p className="text-sm text-muted-foreground">
             Você está no plano gratuito.
           </p>
 
           <ul className="flex flex-col gap-1.5">
-            {FREE_LIMITS.map((f) => (
+            {FREE_LIMITS_LIST.map((f) => (
               <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span className="h-3.5 w-3.5 flex items-center justify-center shrink-0 text-muted-foreground/50 text-xs">—</span>
                 {f}
@@ -126,10 +154,10 @@ export function BillingCard({
           </ul>
 
           {/* Upgrade card */}
-          <div className="rounded-md border border-yellow-400/30 bg-yellow-400/5 p-4 flex flex-col gap-3">
+          <div className="rounded-md border border-pf-accent/30 bg-pf-accent/5 p-4 flex flex-col gap-3">
             <div>
               <p className="text-sm font-semibold flex items-center gap-1.5">
-                <Zap className="h-3.5 w-3.5 text-yellow-500" />
+                <Zap className="h-3.5 w-3.5 text-pf-accent" />
                 PipeFlow Pro
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -139,7 +167,7 @@ export function BillingCard({
             <ul className="flex flex-col gap-1">
               {PRO_FEATURES.map((f) => (
                 <li key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <CheckCircle2 className="h-3 w-3 text-yellow-500 shrink-0" />
+                  <CheckCircle2 className="h-3 w-3 text-pf-accent shrink-0" />
                   {f}
                 </li>
               ))}
