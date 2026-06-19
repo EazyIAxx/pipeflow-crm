@@ -1,8 +1,18 @@
 -- =============================================================================
--- PipeFlow CRM — Script Consolidado de Produção (Supabase)
+-- PipeFlow CRM — Script Consolidado de Bootstrap (Supabase)
 --
--- INSTRUÇÕES:
--- 1. Abra o SQL Editor no Supabase Dashboard (projeto de PRODUÇÃO)
+-- ATENÇÃO — NÃO rode isto no projeto Supabase que já está em uso (o de
+-- .env.local). Esse projeto já tem as 5 migrations aplicadas via
+-- `prisma migrate deploy` — rodar este arquivo lá vai falhar em
+-- `CREATE TYPE "Plan"` com "type already exists" (42710), porque nada aqui
+-- é idempotente além dos IF NOT EXISTS pontuais.
+--
+-- Use este arquivo SÓ pra:
+-- - um projeto Supabase NOVO e vazio (ex.: staging, disaster-recovery)
+-- - recriar o banco do zero se o projeto atual for perdido
+--
+-- INSTRUÇÕES (só pra projeto novo/vazio):
+-- 1. Abra o SQL Editor no Supabase Dashboard do projeto NOVO
 -- 2. Cole este arquivo inteiro e execute
 -- 3. Verifique que RLS está habilitado (FORCE ROW LEVEL SECURITY) em todas
 --    as 7 tabelas de domínio
@@ -11,12 +21,7 @@
 --        004_fk_indexes_rls_tuning -> 005_add_payment_failed_plan
 --
 -- Gerado a partir do histórico real do Prisma em prisma/migrations/ — é uma
--- concatenação fiel das 5 migrations já aplicadas em produção via
--- `prisma migrate deploy`. Serve como documentação e como script de
--- recuperação/disaster-recovery para recriar o banco do zero (ex.: um novo
--- projeto Supabase de staging) sem precisar do Prisma CLI.
---
--- NÃO é o mecanismo usado para aplicar mudanças no dia a dia — isso continua
+-- concatenação fiel das 5 migrations. No dia a dia o mecanismo continua
 -- sendo `prisma migrate dev` (local) e `prisma migrate deploy` (produção).
 -- Se este arquivo divergir do conteúdo de prisma/migrations/, o Prisma é a
 -- fonte da verdade.
