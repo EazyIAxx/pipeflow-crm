@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,7 +28,7 @@ const AUTH_ERRORS: Record<string, string> = {
   "over_email_send_rate_limit": "Muitos cadastros em pouco tempo. Aguarde alguns minutos e tente novamente.",
 };
 
-export default function SignupPage() {
+function SignupForm() {
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") ?? "/onboarding";
   const emailHint = searchParams.get("email") ?? "";
@@ -207,5 +207,13 @@ export default function SignupPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupForm />
+    </Suspense>
   );
 }
